@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Splunk runtime
+splunk-var/
+splunk-etc/
+
+# BOTSv3 dataset (~10GB, fetched locally per README)
+*.tar.gz
+*.tgz
+*.spl
+botsv3*/
+
+# Generated artifacts
+docs/attack-coverage.md
+docs/coverage_heatmap.png
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local env overrides
+.env

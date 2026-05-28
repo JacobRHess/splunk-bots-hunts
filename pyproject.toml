@@ -1,0 +1,52 @@
+[project]
+name = "splunk-bots-hunts"
+version = "0.1.0"
+description = "Threat hunting walkthroughs for Splunk's Boss of the SOC v3 dataset"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Hess" }]
+dependencies = [
+    "requests>=2.32",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "types-requests",
+    "types-PyYAML",
+]
+
+[project.scripts]
+bots-hunts-run = "harness.run_hunts:main"
+bots-hunts-ingest = "harness.ingest_fixtures:main"
+bots-hunts-attack = "harness.attack_aggregate:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["harness"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "RUF", "S", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"harness/**" = ["S501"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,53 @@
+name: hunts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Start Splunk
+        run: docker compose -f docker/compose.yml up -d
+
+      - name: Wait for Splunk
+        run: |
+          for i in $(seq 1 60); do
+            if curl -k -sf https://localhost:8089 > /dev/null; then
+              echo "Splunk ready after ${i} attempts"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Splunk did not become ready"
+          docker compose -f docker/compose.yml logs
+          exit 1
+
+      - name: Ingest fixtures
+        run: uv run python harness/ingest_fixtures.py
+
+      - name: Run hunts
+        run: uv run python harness/run_hunts.py
+
+      - name: Stop Splunk
+        if: always()
+        run: docker compose -f docker/compose.yml down -v
