@@ -1,0 +1,11 @@
+index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y
+| eval is_external = if(
+    Source_Network_Address != "-"
+        AND NOT cidrmatch("127.0.0.0/8", Source_Network_Address)
+        AND NOT cidrmatch("10.0.0.0/8", Source_Network_Address)
+        AND NOT cidrmatch("172.16.0.0/12", Source_Network_Address)
+        AND NOT cidrmatch("192.168.0.0/16", Source_Network_Address),
+    1, 0)
+| stats count as total, sum(is_external) as external_count
+| eval external_count = coalesce(external_count, 0)
+| fields external_count

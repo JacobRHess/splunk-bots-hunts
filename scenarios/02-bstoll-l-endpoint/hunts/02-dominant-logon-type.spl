@@ -1,0 +1,5 @@
+index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y
+| stats count by Logon_Type
+| sort -count
+| head 1
+| fields Logon_Type

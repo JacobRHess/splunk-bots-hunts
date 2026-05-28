@@ -1,0 +1,7 @@
+techniques:
+  - id: T1021.001
+    name: "Remote Services: Remote Desktop Protocol"
+  - id: T1021.002
+    name: "Remote Services: SMB/Windows Admin Shares"
+  - id: T1078.002
+    name: "Valid Accounts: Domain Accounts"

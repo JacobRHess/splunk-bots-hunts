@@ -78,6 +78,11 @@ def main() -> int:
         "--sourcetype", required=True, help="Sourcetype to label fixture events with"
     )
     parser.add_argument("--output", required=True, type=Path, help="Output JSONL path")
+    parser.add_argument(
+        "--raw",
+        action="store_true",
+        help="Emit fixture lines as raw events (for WinEventLog, syslog, Sysmon XML)",
+    )
     parser.add_argument("--host", default=os.environ.get("SPLUNK_HOST", "https://localhost:8089"))
     parser.add_argument("--user", default=os.environ.get("SPLUNK_USER", "admin"))
     parser.add_argument("--password", default=os.environ.get("SPLUNK_PASSWORD", "changeme"))
@@ -92,17 +97,27 @@ def main() -> int:
             raw = row.get("_raw")
             if not raw:
                 continue
-            try:
-                event = json.loads(raw)
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(event, dict):
-                continue
-            event["_sourcetype"] = args.sourcetype
+            if args.raw:
+                event: dict[str, Any] = {"_raw": raw, "_sourcetype": args.sourcetype}
+            else:
+                try:
+                    parsed = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(parsed, dict):
+                    continue
+                event = parsed
+                event["_sourcetype"] = args.sourcetype
             t = row.get("_time")
             if t is not None:
                 with contextlib.suppress(TypeError, ValueError):
                     event["_time"] = int(float(t))
+            host = row.get("host")
+            if host:
+                event["_host"] = host
+            source = row.get("source")
+            if source:
+                event["_source"] = source
             f.write(json.dumps(event, separators=(",", ":")) + "\n")
             written += 1
 
