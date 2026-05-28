@@ -1,0 +1,4 @@
+index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll earliest=-10y
+| search eventName=GetBucket* OR eventName=ListBucket*
+| stats dc(requestParameters.bucketName) as bucket_count
+| fields bucket_count

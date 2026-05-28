@@ -1,0 +1,6 @@
+index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll eventName=ConsoleLogin earliest=-10y
+| stats count by additionalEventData.MFAUsed
+| sort -count
+| head 1
+| rename additionalEventData.MFAUsed as mfa_used
+| fields mfa_used

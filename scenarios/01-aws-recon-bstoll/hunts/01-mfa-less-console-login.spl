@@ -1,0 +1,7 @@
+index=* sourcetype=aws:cloudtrail eventName=ConsoleLogin earliest=-10y
+| search "additionalEventData.MFAUsed"=No userIdentity.type=IAMUser
+| stats count by userIdentity.userName
+| sort -count
+| head 1
+| rename userIdentity.userName as user
+| fields user
