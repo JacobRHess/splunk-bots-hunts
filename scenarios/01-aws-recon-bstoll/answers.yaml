@@ -1,0 +1,17 @@
+hunts:
+  - file: 01-mfa-less-console-login.spl
+    question: Which IAM user logged into the AWS Console without MFA?
+    expected: bstoll
+    field: user
+  - file: 02-bstoll-primary-source-ip.spl
+    question: What external IP did bstoll's session originate from?
+    expected: 107.77.212.175
+    field: sourceIPAddress
+  - file: 03-bstoll-mfa-status.spl
+    question: What MFA status was recorded on bstoll's Console logins?
+    expected: "No"
+    field: mfa_used
+  - file: 04-buckets-enumerated.spl
+    question: How many distinct S3 buckets did bstoll enumerate?
+    expected: "16"
+    field: bucket_count

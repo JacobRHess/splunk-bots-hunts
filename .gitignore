@@ -10,11 +10,13 @@ __pycache__/
 splunk-var/
 splunk-etc/
 
-# BOTSv3 dataset (~10GB, fetched locally per README)
+# BOTSv3 dataset (fetched locally per README) and Splunk app bundles
 *.tar.gz
 *.tgz
 *.spl
 botsv3*/
+# Exception: scenarios ship hunt SPL queries with the .spl extension
+!scenarios/**/*.spl
 
 # Generated artifacts
 docs/attack-coverage.md

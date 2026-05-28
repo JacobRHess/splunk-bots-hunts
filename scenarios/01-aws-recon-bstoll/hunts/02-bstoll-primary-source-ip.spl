@@ -1,0 +1,6 @@
+index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll earliest=-10y
+| search sourceIPAddress!="AWS Internal" sourceIPAddress!="54.240.*"
+| stats count by sourceIPAddress
+| sort -count
+| head 1
+| fields sourceIPAddress

@@ -1,0 +1,9 @@
+techniques:
+  - id: T1078.004
+    name: "Valid Accounts: Cloud Accounts"
+  - id: T1580
+    name: "Cloud Infrastructure Discovery"
+  - id: T1619
+    name: "Cloud Storage Object Discovery"
+  - id: T1087.004
+    name: "Account Discovery: Cloud Account"
