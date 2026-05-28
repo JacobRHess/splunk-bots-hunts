@@ -1,4 +1,3 @@
-index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y
-| regex _raw="Logon Type:\s+2\b"
+index=* host=BSTOLL-L EventCode=4624 Logon_Type=2 earliest=-10y
 | stats count
 | fields count
