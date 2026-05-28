@@ -4,6 +4,7 @@ services:
     container_name: splunk-bots
     environment:
       SPLUNK_START_ARGS: --accept-license
+      SPLUNK_GENERAL_TERMS: --accept-sgt-current-at-splunk-com
       SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-changeme}
       SPLUNK_HEC_TOKEN: ${SPLUNK_HEC_TOKEN:-00000000-0000-0000-0000-000000000000}
     ports:
