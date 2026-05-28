@@ -1,4 +1,6 @@
 index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y
+| rex max_match=1 "Source Network Address:\s+(?<Source_Network_Address>\S+)"
+| eval Source_Network_Address = coalesce(Source_Network_Address, "-")
 | eval is_external = if(
     Source_Network_Address != "-"
         AND NOT cidrmatch("127.0.0.0/8", Source_Network_Address)

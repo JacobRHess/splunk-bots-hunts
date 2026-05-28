@@ -14,7 +14,6 @@ services:
     volumes:
       - splunk-var:/opt/splunk/var
       - splunk-etc:/opt/splunk/etc
-      - ../splunk-apps/bots-hunts-extractions:/opt/splunk/etc/apps/bots-hunts-extractions:ro
 
 volumes:
   splunk-var:
