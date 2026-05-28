@@ -29,17 +29,20 @@ jobs:
       - name: Start Splunk
         run: docker compose -f docker/compose.yml up -d
 
-      - name: Wait for Splunk
+      - name: Wait for Splunk + HEC
         run: |
-          for i in $(seq 1 60); do
-            if curl -k -sf https://localhost:8089 > /dev/null; then
-              echo "Splunk ready after ${i} attempts"
+          for i in $(seq 1 90); do
+            mgmt_ok=$(curl -k -s -o /dev/null -w '%{http_code}' https://localhost:8089/services/server/info -u admin:${SPLUNK_PASSWORD:-changeme} || true)
+            hec_ok=$(curl -k -s -o /dev/null -w '%{http_code}' https://localhost:8088/services/collector/health || true)
+            if [ "$mgmt_ok" = "200" ] && [ "$hec_ok" = "200" ]; then
+              echo "Splunk + HEC ready after ${i} attempts (mgmt=$mgmt_ok hec=$hec_ok)"
               exit 0
             fi
+            echo "attempt $i: mgmt=$mgmt_ok hec=$hec_ok"
             sleep 5
           done
-          echo "Splunk did not become ready"
-          docker compose -f docker/compose.yml logs
+          echo "Splunk or HEC did not become ready"
+          docker compose -f docker/compose.yml logs --tail 200
           exit 1
 
       - name: Ingest fixtures
