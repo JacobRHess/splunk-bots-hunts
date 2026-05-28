@@ -12,6 +12,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SPLUNK_PASSWORD: Chang3me!
+      SPLUNK_HEC_TOKEN: "00000000-0000-0000-0000-000000000000"
     steps:
       - uses: actions/checkout@v4
 
@@ -32,10 +35,10 @@ jobs:
       - name: Wait for Splunk + HEC
         run: |
           for i in $(seq 1 90); do
-            mgmt_ok=$(curl -k -s -o /dev/null -w '%{http_code}' https://localhost:8089/services/server/info -u admin:${SPLUNK_PASSWORD:-changeme} || true)
-            hec_ok=$(curl -k -s -o /dev/null -w '%{http_code}' https://localhost:8088/services/collector/health || true)
+            mgmt_ok=$(curl -k -s -o /dev/null -w '%{http_code}' "https://localhost:8089/services/server/info" -u "admin:${SPLUNK_PASSWORD}" || true)
+            hec_ok=$(curl -k -s -o /dev/null -w '%{http_code}' "https://localhost:8088/services/collector/health" || true)
             if [ "$mgmt_ok" = "200" ] && [ "$hec_ok" = "200" ]; then
-              echo "Splunk + HEC ready after ${i} attempts (mgmt=$mgmt_ok hec=$hec_ok)"
+              echo "Splunk + HEC ready after ${i} attempts"
               exit 0
             fi
             echo "attempt $i: mgmt=$mgmt_ok hec=$hec_ok"
