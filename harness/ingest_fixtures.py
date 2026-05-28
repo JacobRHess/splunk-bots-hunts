@@ -22,7 +22,7 @@ SCENARIOS = Path(__file__).resolve().parent.parent / "scenarios"
 POST_INGEST_SETTLE_SECONDS = 3
 
 
-def post_event(session: requests.Session, payload: dict[str, Any]) -> None:
+def post_event(session: requests.Session, payload: dict[str, Any]) -> None:  # pragma: no cover
     response = session.post(HEC_URL, json=payload, timeout=10)
     response.raise_for_status()
 
@@ -35,7 +35,7 @@ def post_raw(
     time_val: Any | None,
     host: str | None,
     source: str | None,
-) -> None:
+) -> None:  # pragma: no cover
     params: dict[str, str] = {"sourcetype": sourcetype, "index": index}
     if time_val is not None:
         params["time"] = str(time_val)
@@ -52,7 +52,19 @@ def post_raw(
     response.raise_for_status()
 
 
-def main() -> int:
+def classify_event(
+    event: dict[str, Any],
+) -> tuple[str, Any, str | None, str | None, str | None, dict[str, Any]]:
+    """Pop fixture metadata fields. Return (sourcetype, time, raw, host, source, body)."""
+    sourcetype = event.pop("_sourcetype", "_json")
+    time_val = event.pop("_time", None)
+    raw_text = event.pop("_raw", None)
+    host_val = event.pop("_host", None)
+    source_val = event.pop("_source", None)
+    return sourcetype, time_val, raw_text, host_val, source_val, event
+
+
+def main() -> int:  # pragma: no cover
     if not SCENARIOS.exists():
         print(f"No scenarios directory at {SCENARIOS}")
         return 0
@@ -74,19 +86,16 @@ def main() -> int:
                 line = raw.strip()
                 if not line:
                     continue
-                event = json.loads(line)
-                sourcetype = event.pop("_sourcetype", "_json")
-                time_val = event.pop("_time", None)
-                raw_text = event.pop("_raw", None)
-                host_val = event.pop("_host", None)
-                source_val = event.pop("_source", None)
+                sourcetype, time_val, raw_text, host_val, source_val, body = classify_event(
+                    json.loads(line)
+                )
                 if raw_text is not None:
                     post_raw(
                         session, raw_text, sourcetype, index, time_val, host_val, source_val
                     )
                 else:
                     payload: dict[str, Any] = {
-                        "event": event,
+                        "event": body,
                         "index": index,
                         "sourcetype": sourcetype,
                     }

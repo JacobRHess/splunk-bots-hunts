@@ -22,7 +22,7 @@ SID_RE = re.compile(r"<sid>(.+?)</sid>")
 SEARCH_TIMEOUT_SECONDS = 120
 
 
-def run_search(spl: str) -> list[dict[str, Any]]:
+def run_search(spl: str) -> list[dict[str, Any]]:  # pragma: no cover
     session = requests.Session()
     session.auth = (SPLUNK_USER, SPLUNK_PASSWORD)
     session.verify = False
@@ -71,7 +71,7 @@ def _extract_answer(results: list[dict[str, Any]], field: str | None) -> Any:
     return results[0]
 
 
-def main() -> int:
+def main() -> int:  # pragma: no cover
     if not SCENARIOS.exists():
         print(f"No scenarios directory at {SCENARIOS}")
         return 0
