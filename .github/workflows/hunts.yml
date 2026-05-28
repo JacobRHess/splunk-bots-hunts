@@ -51,6 +51,22 @@ jobs:
       - name: Ingest fixtures
         run: uv run python harness/ingest_fixtures.py
 
+      - name: Debug — what landed in Splunk
+        run: |
+          AUTH="admin:${SPLUNK_PASSWORD}"
+          run() {
+            echo "--- $1 ---"
+            curl -k -s -u "$AUTH" --max-time 60 \
+              --data-urlencode "search=$2" \
+              -d 'output_mode=json' -d 'exec_mode=oneshot' \
+              'https://localhost:8089/services/search/jobs' | python -m json.tool || true
+          }
+          run "all events by sourcetype" 'search index=main earliest=-10y | stats count by sourcetype, host'
+          run "WinEventLog 4624 events" 'search index=main sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y | stats count'
+          run "Native Logon_Type breakdown" 'search index=main sourcetype=WinEventLog:Security host=BSTOLL-L earliest=-10y | stats count by Logon_Type'
+          run "Events with Logon Type string in _raw" 'search index=main sourcetype=WinEventLog:Security host=BSTOLL-L earliest=-10y | regex _raw="Logon Type" | stats count'
+          run "Sample raw" 'search index=main sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y | head 1 | table _raw'
+
       - name: Run hunts
         run: uv run python harness/run_hunts.py
 
