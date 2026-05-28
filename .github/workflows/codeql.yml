@@ -17,6 +17,9 @@ concurrency:
 
 jobs:
   analyze:
+    # Code scanning requires GitHub Advanced Security on private repos.
+    # Auto-enables once this repo flips public.
+    if: ${{ github.event.repository.private == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
