@@ -1,0 +1,5 @@
+index=* EventCode=4624 earliest=-10y
+| stats count by host
+| sort -count
+| head 1
+| fields host

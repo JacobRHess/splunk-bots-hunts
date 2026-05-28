@@ -1,0 +1,17 @@
+hunts:
+  - file: 01-most-active-host.spl
+    question: Which host has the highest WinEventLog:Security event volume?
+    expected: BSTOLL-L
+    field: host
+  - file: 02-dominant-logon-type.spl
+    question: What is the dominant Logon_Type on BSTOLL-L's 4624 events?
+    expected: "5"
+    field: Logon_Type
+  - file: 03-external-source-ips.spl
+    question: How many distinct external source IPs appear in BSTOLL-L's 4624 events?
+    expected: "0"
+    field: external_count
+  - file: 04-interactive-logons.spl
+    question: How many interactive (Type=2) logons happened on BSTOLL-L?
+    expected: "4"
+    field: count

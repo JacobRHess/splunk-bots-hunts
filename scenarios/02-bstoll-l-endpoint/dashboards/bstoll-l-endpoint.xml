@@ -1,0 +1,64 @@
+<form>
+  <label>BSTOLL-L endpoint profile</label>
+  <description>Was the bstoll AWS compromise reached through the laptop? WinEventLog:Security view of BSTOLL-L's logon and process activity.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Event volume by host (WinEventLog:Security)</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=WinEventLog:Security | stats count by host | sort -count | head 10</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>BSTOLL-L 4624 logon profile</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 | stats count by Logon_Type | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>BSTOLL-L 4624 source addresses</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 | stats count by Source_Network_Address | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Interactive (Type=2) logons - timeline</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 Logon_Type=2 | timechart span=1h count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+  </row>
+</form>
