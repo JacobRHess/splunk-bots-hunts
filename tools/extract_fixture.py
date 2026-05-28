@@ -30,7 +30,9 @@ SID_RE = re.compile(r"<sid>(.+?)</sid>")
 SEARCH_TIMEOUT_SECONDS = 180
 
 
-def run_search(host: str, user: str, password: str, spl: str) -> list[dict[str, Any]]:
+def run_search(  # pragma: no cover
+    host: str, user: str, password: str, spl: str
+) -> list[dict[str, Any]]:
     session = requests.Session()
     session.auth = (user, password)
     session.verify = False
@@ -71,7 +73,7 @@ def run_search(host: str, user: str, password: str, spl: str) -> list[dict[str, 
     return list(results.get("results", []))
 
 
-def main() -> int:
+def main() -> int:  # pragma: no cover
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--spl", required=True, help="SPL search (must return _raw + _time)")
     parser.add_argument(
@@ -94,35 +96,45 @@ def main() -> int:
     written = 0
     with args.output.open("w", encoding="utf-8") as f:
         for row in results:
-            raw = row.get("_raw")
-            if not raw:
+            event = build_fixture_event(row, args.sourcetype, raw_mode=args.raw)
+            if event is None:
                 continue
-            if args.raw:
-                event: dict[str, Any] = {"_raw": raw, "_sourcetype": args.sourcetype}
-            else:
-                try:
-                    parsed = json.loads(raw)
-                except json.JSONDecodeError:
-                    continue
-                if not isinstance(parsed, dict):
-                    continue
-                event = parsed
-                event["_sourcetype"] = args.sourcetype
-            t = row.get("_time")
-            if t is not None:
-                with contextlib.suppress(TypeError, ValueError):
-                    event["_time"] = int(float(t))
-            host = row.get("host")
-            if host:
-                event["_host"] = host
-            source = row.get("source")
-            if source:
-                event["_source"] = source
             f.write(json.dumps(event, separators=(",", ":")) + "\n")
             written += 1
 
     print(f"Wrote {written} events to {args.output}")
     return 0
+
+
+def build_fixture_event(
+    row: dict[str, Any], sourcetype: str, *, raw_mode: bool
+) -> dict[str, Any] | None:
+    """Turn one Splunk search row into a fixture event dict (or None to skip)."""
+    raw = row.get("_raw")
+    if not raw:
+        return None
+    if raw_mode:
+        event: dict[str, Any] = {"_raw": raw, "_sourcetype": sourcetype}
+    else:
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(parsed, dict):
+            return None
+        event = parsed
+        event["_sourcetype"] = sourcetype
+    t = row.get("_time")
+    if t is not None:
+        with contextlib.suppress(TypeError, ValueError):
+            event["_time"] = int(float(t))
+    host = row.get("host")
+    if host:
+        event["_host"] = host
+    source = row.get("source")
+    if source:
+        event["_source"] = source
+    return event
 
 
 if __name__ == "__main__":

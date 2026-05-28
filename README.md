@@ -1,5 +1,10 @@
 # splunk-bots-hunts
 
+[![hunts](https://github.com/JacobRHess/splunk-bots-hunts/actions/workflows/hunts.yml/badge.svg)](https://github.com/JacobRHess/splunk-bots-hunts/actions/workflows/hunts.yml)
+[![codeql](https://github.com/JacobRHess/splunk-bots-hunts/actions/workflows/codeql.yml/badge.svg)](https://github.com/JacobRHess/splunk-bots-hunts/actions/workflows/codeql.yml)
+[![python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
+[![license MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Threat hunting walkthroughs for Splunk's *Boss of the SOC v3* dataset.
 
 Every hunt in this repo is a documented investigation: the question, the SPL that answers it, the pivots that got me there, and the ATT&CK techniques touched. CI spins up a Splunk container, ingests fixture events over HEC, runs each hunt's SPL via the REST API, and asserts the expected answer, so the hunts can't silently rot when the SPL syntax changes or a field gets renamed.
@@ -20,18 +25,18 @@ scenarios/<id>-<slug>/
 └── attack.yaml         { techniques: [{ id, name }] }
 ```
 
-The full ~10GB BOTSv3 dataset stays out of git. Fixtures committed alongside each hunt are tiny event slices, just enough to exercise the SPL in CI.
+The full BOTSv3 dataset stays out of git. Fixtures committed alongside each hunt are tiny event slices, just enough to exercise the SPL in CI.
 
 ## Local development
 
-Prereqs: Docker Desktop, Python 3.13, [uv](https://github.com/astral-sh/uv).
+Prereqs: Docker Desktop (or native Splunk), Python 3.13, [uv](https://github.com/astral-sh/uv).
 
 ```powershell
 uv sync
 docker compose -f docker/compose.yml up -d
 ```
 
-Splunk Web is at <http://localhost:8000> (admin / `changeme` unless you set `SPLUNK_PASSWORD`). The first time, install the BOTSv3 app via Manage Apps → Install from file. Get the bundle from <https://github.com/splunk/botsv3>.
+Splunk Web is at <http://localhost:8000>. The dev admin password is `changeme` (set `SPLUNK_PASSWORD` env to override). The first time, install the BOTSv3 app via Manage Apps → Install from file; the bundle lives at <https://github.com/splunk/botsv3>.
 
 Run all documented hunts against the running Splunk:
 
@@ -47,14 +52,25 @@ uv run python harness/attack_aggregate.py
 
 ## CI
 
-`.github/workflows/hunts.yml` runs on every PR:
+Two workflows, both on push and PR:
 
-1. Boot Splunk in Docker
-2. Wait for `:8089` to become healthy
-3. Ingest each scenario's fixtures via HEC
-4. Run every hunt's SPL, assert each answer
-5. `ruff check`
+`hunts.yml` runs in two jobs:
+
+- **lint** (~1 min): ruff, mypy strict, bandit security linting, pytest with coverage gate (50% minimum on pure-Python paths), pip-audit against the resolved lockfile.
+- **validate** (~3 min, runs after lint passes): boots Splunk in Docker, ingests every scenario's fixtures via HEC, runs every hunt's SPL via REST, asserts each answer.
+
+`codeql.yml` runs CodeQL static analysis for Python on push, PR, and weekly.
+
+All third-party actions are SHA-pinned. Workflows declare least-privilege `permissions:` blocks. Concurrency groups cancel in-progress runs when a branch is updated.
+
+## Security notes
+
+- Credentials in the repo are dev-only: `changeme`/`Chang3me!` passwords, fixed HEC token `00000000-...`. Never reuse them outside CI or a local sandbox.
+- The Python harness disables TLS verification (`verify=False`) because the Splunk Docker image presents a self-signed cert on its mgmt and HEC endpoints. Bandit's `B501` warning is suppressed for this reason and the suppression is scoped via `pyproject.toml`.
+- Coverage on the HTTP-IO functions is excluded via `pragma: no cover`; those paths are exercised end-to-end by the `validate` CI job against a real Splunk container, not unit-tested with mocks.
+- `pip-audit --strict` runs on every PR. Vulnerability findings break the build.
+- Hunt fixtures are slices of BOTSv3 public data. Nothing in the repo contains real customer or production telemetry.
 
 ## Status
 
-Early. Scaffold is in, first scenario is in progress.
+Two scenarios shipped. Adding more as the dataset gets worked through.

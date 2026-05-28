@@ -1,6 +1,6 @@
 [project]
 name = "splunk-bots-hunts"
-version = "0.1.0"
+version = "0.2.0"
 description = "Threat hunting walkthroughs for Splunk's Boss of the SOC v3 dataset"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -14,8 +14,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8",
+    "pytest-cov>=6",
     "ruff>=0.7",
     "mypy>=1.13",
+    "bandit[toml]>=1.7",
+    "pip-audit>=2.7",
     "types-requests",
     "types-PyYAML",
 ]
@@ -49,5 +52,30 @@ python_version = "3.13"
 strict = true
 warn_unreachable = true
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov=harness --cov=tools --cov-report=term-missing"
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "docs"]
+# B501: TLS verify disabled. We deliberately don't verify Splunk's self-signed
+# cert in dev/CI; this is documented in code.
+skips = ["B501"]
+
+[tool.coverage.run]
+source = ["harness", "tools"]
+omit = ["tools/_*.py"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 50
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

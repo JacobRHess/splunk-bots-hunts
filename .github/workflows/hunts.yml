@@ -8,26 +8,47 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SPLUNK_PASSWORD: Chang3me!
+  SPLUNK_HEC_TOKEN: "00000000-0000-0000-0000-000000000000"
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff  # v6
+      - name: Install deps
+        run: uv sync --frozen
+      - name: ruff
+        run: uv run ruff check
+      - name: mypy strict
+        run: uv run mypy harness tools
+      - name: bandit
+        run: uv run bandit -c pyproject.toml -r harness tools
+      - name: pytest with coverage
+        run: uv run pytest --cov-report=term-missing
+      - name: pip-audit
+        run: uv run pip-audit --skip-editable
+
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      SPLUNK_PASSWORD: Chang3me!
-      SPLUNK_HEC_TOKEN: "00000000-0000-0000-0000-000000000000"
+    needs: lint
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.13"
-
-      - name: Install dependencies
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff  # v6
+      - name: Install deps
         run: uv sync --frozen
-
-      - name: Lint
-        run: uv run ruff check
 
       - name: Start Splunk
         run: docker compose -f docker/compose.yml up -d
