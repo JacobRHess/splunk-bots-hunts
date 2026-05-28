@@ -1,5 +1,4 @@
 index=* sourcetype=WinEventLog:Security host=BSTOLL-L EventCode=4624 earliest=-10y
-| rex max_match=1 "Logon Type:\s+(?<Logon_Type>\d+)"
-| where Logon_Type="2"
+| regex _raw="Logon Type:\s+2\b"
 | stats count
 | fields count
