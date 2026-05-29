@@ -221,7 +221,7 @@ _PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Documented Splunk hunts over the Boss of the SOC v3 dataset.">
+<meta name="description" content="A Boss of the SOC v3 investigation you can run, verified in CI.">
 <title>Splunk BOTS v3 threat hunts</title>
 <style>
 :root {{ --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#c9d1d9;
@@ -288,7 +288,7 @@ a {{ color:var(--accent); }}
 <main class="wrap">
 <header>
 <h1>Splunk BOTS v3 threat hunts</h1>
-<p>Threat hunting walkthroughs for Splunk's Boss of the SOC v3 dataset.</p>
+<p>A Boss of the SOC v3 investigation you can run, verified against live Splunk in CI.</p>
 </header>
 <div class="stats">
 <div class="stat"><b>{scenario_count}</b><span>scenarios</span></div>
