@@ -55,6 +55,12 @@ table.matrix code { color:var(--accent); }
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
 .meta { color:var(--muted); font-size:12px; margin:0 0 12px; }
 .field { color:var(--accent); }
+.dets { border-top:1px solid var(--line); padding-top:10px; }
+.dets span { color:var(--muted); font-size:12px; text-transform:uppercase;
+  letter-spacing:.04em; }
+.dets ul { margin:6px 0 0; padding-left:18px; }
+.dets li { font-size:13px; margin:2px 0; }
+.links { margin:12px 0 0; color:var(--muted); font-size:13px; }
 footer { margin-top:48px; color:var(--muted); font-size:13px;
   border-top:1px solid var(--line); padding-top:16px; }
 a { color:var(--accent); }
@@ -69,8 +75,12 @@ a { color:var(--accent); }
 <div class="stats">
 <div class="stat"><b>4</b><span>scenarios</span></div>
 <div class="stat"><b>16</b><span>hunts</span></div>
+<div class="stat"><b>5</b><span>detections</span></div>
 <div class="stat"><b>15</b><span>ATT&amp;CK techniques</span></div>
 </div>
+<p class="links">Deployable detections ship as a Splunk app
+(<code>splunk_app/froth_bots_hunts</code>). ATT&amp;CK coverage is also exported as a
+<a href="attack-navigator-layer.json">Navigator layer</a>.</p>
 <h2>ATT&amp;CK coverage</h2>
 <div class="matrix-wrap">
 <table class="matrix">
@@ -98,7 +108,7 @@ a { color:var(--accent); }
 | fields mfa_used</pre><div class="meta">03-bstoll-mfa-status.spl <span class="field">→ mfa_used</span></div></div></div><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">4</span>How many distinct S3 buckets did bstoll enumerate?<span class="ans">16</span></button><div class="spl"><pre>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll earliest=-10y
 | search eventName=GetBucket* OR eventName=ListBucket*
 | stats dc(requestParameters.bucketName) as bucket_count
-| fields bucket_count</pre><div class="meta">04-buckets-enumerated.spl <span class="field">→ bucket_count</span></div></div></div></div></section><section class="card" id="02-bstoll-l-endpoint"><h3><span class="badge">02</span>BSTOLL-L endpoint logon profile</h3><p class="summary">Scenario 01 established that the IAM user bstoll was compromised and used to enumerate AWS on 2018-08-20 from a residential AT&amp;T IP without MFA. The natural next question: did the laptop BSTOLL-L itself get popped, or were the AWS credentials stolen by some other vector?</p><div class="chips"><span class="chip">T1021.001</span><span class="chip">T1021.002</span><span class="chip">T1078.002</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which host has the highest WinEventLog:Security event volume?<span class="ans">BSTOLL-L</span></button><div class="spl"><pre>index=* EventCode=4624 earliest=-10y
+| fields bucket_count</pre><div class="meta">04-buckets-enumerated.spl <span class="field">→ bucket_count</span></div></div></div></div><div class="dets"><span>Detections</span><ul><li>AWS Console login without MFA (IAM user)</li></ul></div></section><section class="card" id="02-bstoll-l-endpoint"><h3><span class="badge">02</span>BSTOLL-L endpoint logon profile</h3><p class="summary">Scenario 01 established that the IAM user bstoll was compromised and used to enumerate AWS on 2018-08-20 from a residential AT&amp;T IP without MFA. The natural next question: did the laptop BSTOLL-L itself get popped, or were the AWS credentials stolen by some other vector?</p><div class="chips"><span class="chip">T1021.001</span><span class="chip">T1021.002</span><span class="chip">T1078.002</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which host has the highest WinEventLog:Security event volume?<span class="ans">BSTOLL-L</span></button><div class="spl"><pre>index=* EventCode=4624 earliest=-10y
 | stats count by host
 | sort -count
 | head 1
@@ -118,7 +128,7 @@ a { color:var(--accent); }
 | eval external_count = coalesce(external_count, 0)
 | fields external_count</pre><div class="meta">03-external-source-ips.spl <span class="field">→ external_count</span></div></div></div><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">4</span>How many interactive (Type=2) logons happened on BSTOLL-L?<span class="ans">4</span></button><div class="spl"><pre>index=* host=BSTOLL-L EventCode=4624 Logon_Type=2 earliest=-10y
 | stats count
-| fields count</pre><div class="meta">04-interactive-logons.spl <span class="field">→ count</span></div></div></div></div></section><section class="card" id="03-bstoll-coinhive-cryptojacking"><h3><span class="badge">03</span>BSTOLL-L browser cryptojacking (Coinhive)</h3><p class="summary">Scenario 02 ruled out the easy endpoint-compromise answers for BSTOLL-L: no remote logons, no external 4624 source IPs, a normal service-logon profile. The leftover hypotheses all ran through the browser or a local process under bstoll&#x27;s own session. So I went looking at what BSTOLL-L was actually talking to on the wire.</p><div class="chips"><span class="chip">T1496</span><span class="chip">T1059.007</span><span class="chip">T1071.001</span><span class="chip">T1189</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which internal host resolved coinhive.com mining domains?<span class="ans">192.168.247.131</span></button><div class="spl"><pre>index=* sourcetype=stream:dns query=*coinhive.com earliest=-10y
+| fields count</pre><div class="meta">04-interactive-logons.spl <span class="field">→ count</span></div></div></div></div><div class="dets"><span>Detections</span><ul><li>Remote interactive/network logon from external source</li></ul></div></section><section class="card" id="03-bstoll-coinhive-cryptojacking"><h3><span class="badge">03</span>BSTOLL-L browser cryptojacking (Coinhive)</h3><p class="summary">Scenario 02 ruled out the easy endpoint-compromise answers for BSTOLL-L: no remote logons, no external 4624 source IPs, a normal service-logon profile. The leftover hypotheses all ran through the browser or a local process under bstoll&#x27;s own session. So I went looking at what BSTOLL-L was actually talking to on the wire.</p><div class="chips"><span class="chip">T1496</span><span class="chip">T1059.007</span><span class="chip">T1071.001</span><span class="chip">T1189</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which internal host resolved coinhive.com mining domains?<span class="ans">192.168.247.131</span></button><div class="spl"><pre>index=* sourcetype=stream:dns query=*coinhive.com earliest=-10y
 | stats count by src_ip
 | sort -count
 | head 1
@@ -130,7 +140,7 @@ a { color:var(--accent); }
 | stats count by src_mac
 | sort -count
 | head 1
-| fields src_mac</pre><div class="meta">04-infected-host-mac.spl <span class="field">→ src_mac</span></div></div></div></div></section><section class="card" id="04-fyodor-powershell-empire"><h3><span class="badge">04</span>FYODOR-L PowerShell implant (Empire-style)</h3><p class="summary">FYODOR-L.froth.ly is the loudest Sysmon host in the dataset, and the noise is a live PowerShell implant. The host runs powershell.exe -NonI -W hidden -c &quot;IEX (...FromBase64String((gp HKLM:\Software\Microsoft\Network debug).debug)))&quot;. That one line carries the whole technique: read a base64 blob out of a registry value, decode it in memory, and run it with IEX. Nothing touches disk, so file-hash and AV signatures never get a look.</p><div class="chips"><span class="chip">T1059.001</span><span class="chip">T1027</span><span class="chip">T1053.005</span><span class="chip">T1112</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which host ran in-memory PowerShell that decodes a base64 payload?<span class="ans">FYODOR-L.froth.ly</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* earliest=-10y
+| fields src_mac</pre><div class="meta">04-infected-host-mac.spl <span class="field">→ src_mac</span></div></div></div></div><div class="dets"><span>Detections</span><ul><li>Cryptomining pool DNS resolution</li></ul></div></section><section class="card" id="04-fyodor-powershell-empire"><h3><span class="badge">04</span>FYODOR-L PowerShell implant (Empire-style)</h3><p class="summary">FYODOR-L.froth.ly is the loudest Sysmon host in the dataset, and the noise is a live PowerShell implant. The host runs powershell.exe -NonI -W hidden -c &quot;IEX (...FromBase64String((gp HKLM:\Software\Microsoft\Network debug).debug)))&quot;. That one line carries the whole technique: read a base64 blob out of a registry value, decode it in memory, and run it with IEX. Nothing touches disk, so file-hash and AV signatures never get a look.</p><div class="chips"><span class="chip">T1059.001</span><span class="chip">T1027</span><span class="chip">T1053.005</span><span class="chip">T1112</span></div><div class="hunts"><div class="hunt"><button class="hq" aria-expanded="false" onclick="const h=this.parentNode;h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))"><span class="num">1</span>Which host ran in-memory PowerShell that decodes a base64 payload?<span class="ans">FYODOR-L.froth.ly</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* earliest=-10y
 | stats count by Computer
 | sort -count
 | head 1
@@ -149,7 +159,7 @@ a { color:var(--accent); }
 | stats count by User
 | sort -count
 | head 1
-| fields User</pre><div class="meta">04-implant-user.spl <span class="field">→ User</span></div></div></div></div></section>
+| fields User</pre><div class="meta">04-implant-user.spl <span class="field">→ User</span></div></div></div></div><div class="dets"><span>Detections</span><ul><li>Encoded or in-memory PowerShell execution</li><li>PowerShell launched by the Task Scheduler (svchost)</li></ul></div></section>
 <footer>Generated from the scenario sources by
 <code>harness/build_report.py</code>. Click a hunt to see its SPL.</footer>
 </main>

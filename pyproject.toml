@@ -28,6 +28,9 @@ bots-hunts-run = "harness.run_hunts:main"
 bots-hunts-ingest = "harness.ingest_fixtures:main"
 bots-hunts-attack = "harness.attack_aggregate:main"
 bots-hunts-report = "harness.build_report:main"
+bots-hunts-detections = "harness.run_detections:main"
+bots-hunts-layer = "harness.build_attack_layer:main"
+bots-hunts-app = "harness.build_splunk_app:main"
 
 [build-system]
 requires = ["hatchling"]

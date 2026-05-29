@@ -93,6 +93,27 @@ def test_readme_cites_every_attack_technique(scenario: Path) -> None:
 
 
 @pytest.mark.parametrize("scenario", SCENARIO_DIRS, ids=SCENARIO_IDS)
+def test_detections_are_well_formed(scenario: Path) -> None:
+    det_file = scenario / "detections.yaml"
+    if not det_file.exists():
+        return
+    data = yaml.safe_load(det_file.read_text()) or {}
+    detections = data.get("detections", [])
+    assert detections, f"{scenario.name}: detections.yaml has no detections"
+    for det in detections:
+        for key in ("id", "name", "search", "fixture_expect", "attack"):
+            assert det.get(key), f"{scenario.name}: detection missing '{key}': {det.get('name')}"
+        assert det["fixture_expect"] in ("fires", "silent"), (
+            f"{scenario.name}/{det['id']}: fixture_expect must be fires|silent"
+        )
+        # SPL is stored without a leading `search`/index (the runner scopes it),
+        # so a detection must not pin its own time window.
+        assert "earliest=" not in det["search"], (
+            f"{scenario.name}/{det['id']}: detection search should not hardcode earliest="
+        )
+
+
+@pytest.mark.parametrize("scenario", SCENARIO_DIRS, ids=SCENARIO_IDS)
 def test_readme_h1_number_matches_directory(scenario: Path) -> None:
     readme = (scenario / "README.md").read_text(encoding="utf-8")
     h1 = next((ln for ln in readme.splitlines() if ln.startswith("# ")), "")

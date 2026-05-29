@@ -52,6 +52,7 @@ def _scenario(number: str, techniques: list[tuple[str, str]]) -> Scenario:
         summary="summary",
         hunts=[Hunt(file="01-a.spl", question="Q?", expected="ans", field="f", spl="search x")],
         techniques=techniques,
+        detections=["A detection"],
     )
 
 
@@ -117,10 +118,12 @@ def test_render_escapes_html_in_content() -> None:
             summary="sum & more",
             hunts=[Hunt(file="01-a.spl", question="a < b", expected="x>y", field=None, spl="<x>")],
             techniques=[],
+            detections=["Det <i>"],
         )
     ]
     html_out = build_report.render(scenarios)
     assert "Title &lt;b&gt;" in html_out  # title escaped, not injected as a tag
+    assert "Det &lt;i&gt;" in html_out  # detection name escaped
     assert "sum &amp; more" in html_out
     assert "a &lt; b" in html_out
     assert "&lt;x&gt;" in html_out  # SPL body escaped
