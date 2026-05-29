@@ -38,7 +38,7 @@ def run_search(  # pragma: no cover
     session.verify = False
 
     query = spl.strip()
-    if not (query.startswith("search") or query.startswith("|")):
+    if not re.match(r"(search\b|\|)", query):
         query = f"search {query}"
 
     create = session.post(
@@ -61,7 +61,8 @@ def run_search(  # pragma: no cover
             params={"output_mode": "json"},
             timeout=10,
         ).json()
-        if status["entry"][0]["content"]["isDone"]:
+        content = status["entry"][0]["content"]
+        if content.get("dispatchState") == "DONE" or content.get("isDone") in (True, "1", 1):
             break
         time.sleep(1)
 

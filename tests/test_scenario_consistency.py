@@ -44,7 +44,7 @@ def test_each_hunt_projects_its_answer_field(scenario: Path) -> None:
         if not field:
             continue
         spl = (scenario / "hunts" / hunt["file"]).read_text()
-        assert f"fields {field}" in spl, (
+        assert re.search(rf"fields {re.escape(field)}\b", spl), (
             f"{scenario.name}/{hunt['file']}: answer field '{field}' is never projected "
             f"with `| fields {field}`"
         )

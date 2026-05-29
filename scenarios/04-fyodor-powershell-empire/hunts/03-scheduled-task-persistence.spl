@@ -1,0 +1,6 @@
+index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* ParentCommandLine=*svchost* earliest=-10y
+| rex field=ParentCommandLine "-s (?<service>\S+)"
+| stats count by service
+| sort -count
+| head 1
+| fields service

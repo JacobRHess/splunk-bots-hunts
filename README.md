@@ -76,7 +76,7 @@ All third-party actions are SHA-pinned. Workflows declare least-privilege `permi
 - Credentials in the repo are dev-only: `changeme`/`Chang3me!` passwords, fixed HEC token `00000000-...`. Never reuse them outside CI or a local sandbox.
 - The Python harness disables TLS verification (`verify=False`) because the Splunk Docker image presents a self-signed cert on its mgmt and HEC endpoints. Bandit's `B501` warning is suppressed for this reason and the suppression is scoped via `pyproject.toml`.
 - Coverage on the HTTP-IO functions is excluded via `pragma: no cover`; those paths are exercised end-to-end by the `validate` CI job against a real Splunk container, not unit-tested with mocks.
-- `pip-audit --strict` runs on every PR. Vulnerability findings break the build.
+- `pip-audit` runs on every PR (with `--skip-editable`, since the local package is installed editable). Vulnerability findings break the build.
 - Hunt fixtures are slices of BOTSv3 public data. Nothing in the repo contains real customer or production telemetry.
 
 ## Status

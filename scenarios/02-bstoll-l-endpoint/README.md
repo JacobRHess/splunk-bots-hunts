@@ -15,7 +15,7 @@ This scenario answers that by pulling BSTOLL-L's `WinEventLog:Security` apart an
 
 ## Reading the results
 
-The endpoint shows a *normal* logon profile: lots of services, four interactive logins, zero remote sessions from outside private RFC1918 space. There is no 4624 evidence of attacker login to BSTOLL-L itself. That doesn't rule out a credential stealer running under bstoll's own session (which would not generate a new logon), but it does rule out the easy answers (RDP brute force, pass-the-hash from another box, stolen domain creds used remotely).
+The endpoint shows a normal logon profile: lots of services, four interactive logons, zero remote sessions from outside private RFC1918 space. There is no 4624 evidence of attacker login to BSTOLL-L itself. A credential stealer running under bstoll's own session would not generate a new logon, so that stays open. What this rules out is the easy stuff: RDP brute force, pass-the-hash from another box, stolen domain creds used remotely.
 
 The likely AWS-credential-theft vector is therefore one of:
 - Browser session cookie theft for `console.aws.amazon.com`
@@ -40,3 +40,7 @@ A follow-up scenario can dig into the file-access and network telemetry to chase
 | T1021 Remote Services | T1021.001 RDP | `Logon_Type=10` 4624 events | none |
 | T1021 Remote Services | T1021.002 SMB/Admin Shares | `Logon_Type=3` 4624 events from external IPs | none |
 | T1078 Valid Accounts | T1078.002 Domain Accounts | 4624 events with non-local source | none |
+
+## What I would have detected
+
+A rule for `EventCode=4624 (Logon_Type=3 OR Logon_Type=10)` with an external `Source_Network_Address` would have caught remote endpoint compromise. On BSTOLL-L it stays silent, which is the finding: the laptop was not reached over the network. The negative result is what redirects the investigation toward the browser and local-process vectors that scenarios 03 and 04 pick up.

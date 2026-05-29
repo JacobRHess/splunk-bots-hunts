@@ -28,7 +28,7 @@ def run_search(spl: str) -> list[dict[str, Any]]:  # pragma: no cover
     session.verify = False
 
     query = spl.strip()
-    if not (query.startswith("search") or query.startswith("|")):
+    if not re.match(r"(search\b|\|)", query):
         query = f"search {query}"
 
     create = session.post(
@@ -51,7 +51,13 @@ def run_search(spl: str) -> list[dict[str, Any]]:  # pragma: no cover
             params={"output_mode": "json"},
             timeout=10,
         ).json()
-        if status["entry"][0]["content"]["isDone"]:
+        content = status["entry"][0]["content"]
+        # The JSON API returns isDone/dispatchState as strings ("1"/"0", "DONE").
+        # A bare truthiness check on isDone is always true, so key off dispatchState.
+        state = content.get("dispatchState")
+        if state == "FAILED":
+            raise RuntimeError(f"Search {sid} failed: {content.get('messages')}")
+        if state == "DONE" or content.get("isDone") in (True, "1", 1):
             break
         time.sleep(1)
 
@@ -69,6 +75,21 @@ def _extract_answer(results: list[dict[str, Any]], field: str | None) -> Any:
     if field:
         return results[0].get(field)
     return results[0]
+
+
+def _matches(actual: Any, expected: Any) -> bool:
+    """Compare a hunt result to its expected answer, tolerant of numeric form
+    (``16`` vs ``"16"`` vs ``16.0``) and surrounding whitespace. None never matches."""
+    if actual is None:
+        return False
+    a = str(actual).strip()
+    e = str(expected).strip()
+    if a == e:
+        return True
+    try:
+        return float(a) == float(e)
+    except ValueError:
+        return False
 
 
 def main() -> int:  # pragma: no cover
@@ -92,10 +113,14 @@ def main() -> int:  # pragma: no cover
                 failures.append(f"{scenario.name}/{hunt['file']}: missing SPL file")
                 continue
             spl = spl_path.read_text()
-            results = run_search(spl)
+            try:
+                results = run_search(spl)
+            except (requests.RequestException, RuntimeError, TimeoutError, ValueError) as exc:
+                failures.append(f"{scenario.name}/{hunt['file']}: search error: {exc}")
+                continue
             actual = _extract_answer(results, hunt.get("field"))
             expected = hunt["expected"]
-            if str(actual) != str(expected):
+            if not _matches(actual, expected):
                 failures.append(
                     f"{scenario.name}/{hunt['file']}: expected {expected!r}, got {actual!r}"
                 )

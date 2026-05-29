@@ -7,10 +7,10 @@ hunts:
     question: Which registry path stored the encoded implant?
     expected: 'HKLM:\Software\Microsoft\Network'
     field: regpath
-  - file: 03-stager-url.spl
-    question: What URL did the initial PowerShell stager download from?
-    expected: http://bit.ly/e0Mw9w
-    field: url
+  - file: 03-scheduled-task-persistence.spl
+    question: Which Windows service relaunched the SYSTEM copy of the implant?
+    expected: Schedule
+    field: service
   - file: 04-implant-user.spl
     question: Which non-SYSTEM user account executed the implant?
     expected: 'AzureAD\FyodorMalteskesko'
