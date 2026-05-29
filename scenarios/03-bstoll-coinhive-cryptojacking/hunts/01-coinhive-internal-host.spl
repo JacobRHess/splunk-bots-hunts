@@ -1,0 +1,5 @@
+index=* sourcetype=stream:dns query=*coinhive.com earliest=-10y
+| stats count by src_ip
+| sort -count
+| head 1
+| fields src_ip

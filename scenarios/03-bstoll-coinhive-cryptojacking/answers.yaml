@@ -1,0 +1,17 @@
+hunts:
+  - file: 01-coinhive-internal-host.spl
+    question: Which internal host resolved coinhive.com mining domains?
+    expected: 192.168.247.131
+    field: src_ip
+  - file: 02-coinhive-fqdns.spl
+    question: How many distinct coinhive.com FQDNs did the host resolve?
+    expected: "6"
+    field: fqdn_count
+  - file: 03-mining-endpoints.spl
+    question: How many distinct coinhive mining websocket endpoints (ws*.coinhive.com) were resolved?
+    expected: "5"
+    field: endpoint_count
+  - file: 04-infected-host-mac.spl
+    question: What is the MAC address of the host running the in-browser miner?
+    expected: "00:0C:29:B8:44:5E"
+    field: src_mac
