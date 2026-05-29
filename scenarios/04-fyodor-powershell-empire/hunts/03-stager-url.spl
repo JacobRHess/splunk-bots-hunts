@@ -1,0 +1,6 @@
+index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*DownloadString* earliest=-10y
+| rex field=CommandLine "(?<url>https?://[a-zA-Z0-9./_-]+)"
+| stats count by url
+| sort -count
+| head 1
+| fields url

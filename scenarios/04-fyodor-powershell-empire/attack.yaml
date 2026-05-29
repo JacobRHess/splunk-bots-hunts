@@ -1,0 +1,11 @@
+techniques:
+  - id: T1059.001
+    name: "Command and Scripting Interpreter: PowerShell"
+  - id: T1027
+    name: "Obfuscated Files or Information"
+  - id: T1105
+    name: "Ingress Tool Transfer"
+  - id: T1053.005
+    name: "Scheduled Task/Job: Scheduled Task"
+  - id: T1112
+    name: "Modify Registry"

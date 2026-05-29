@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>splunk-bots-hunts</title>
+<style>
+:root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#c9d1d9;
+  --muted:#8b949e; --accent:#58a6ff; --hit:#3fb950; --ans:#d29922; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+.wrap { max-width:980px; margin:0 auto; padding:32px 20px 80px; }
+header h1 { margin:0 0 4px; font-size:28px; }
+header p { margin:0; color:var(--muted); }
+.stats { display:flex; gap:24px; margin:24px 0 8px; }
+.stat { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:12px 18px; }
+.stat b { display:block; font-size:24px; color:var(--accent); }
+.stat span { color:var(--muted); font-size:13px; }
+h2 { margin:40px 0 12px; font-size:18px; border-bottom:1px solid var(--line);
+  padding-bottom:6px; }
+table.matrix { border-collapse:collapse; width:100%; font-size:13px; }
+table.matrix th, table.matrix td { border:1px solid var(--line); padding:6px 8px;
+  text-align:center; }
+table.matrix th.tech { text-align:left; white-space:nowrap; font-weight:400; }
+table.matrix td.hit { color:var(--hit); font-size:16px; }
+table.matrix code { color:var(--accent); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:18px 20px; margin:16px 0; }
+.card h3 { margin:0 0 8px; font-size:18px; display:flex; align-items:center; gap:10px; }
+.badge { background:var(--accent); color:#0d1117; border-radius:6px; padding:1px 9px;
+  font-size:14px; font-weight:700; }
+.summary { color:var(--muted); margin:0 0 12px; }
+.chips { margin-bottom:12px; }
+.chip { display:inline-block; background:#1f6feb22; color:var(--accent);
+  border:1px solid #1f6feb55; border-radius:20px; padding:1px 10px; font-size:12px;
+  margin:0 6px 6px 0; }
+.hunt { border-top:1px solid var(--line); }
+.hq { width:100%; text-align:left; background:none; border:0; color:var(--text);
+  padding:10px 0; cursor:pointer; font-size:14px; display:flex; align-items:center;
+  gap:10px; }
+.hq .num { color:var(--muted); }
+.hq .ans { margin-left:auto; color:var(--ans); font-family:ui-monospace,monospace;
+  font-size:13px; }
+.spl { max-height:0; overflow:hidden; transition:max-height .2s ease; }
+.hunt.open .spl { max-height:400px; }
+.spl pre { background:#0d1117; border:1px solid var(--line); border-radius:6px;
+  padding:12px; overflow:auto; font-size:13px; color:#e6edf3; }
+.meta { color:var(--muted); font-size:12px; margin:0 0 12px; }
+.field { color:var(--accent); }
+footer { margin-top:48px; color:var(--muted); font-size:13px;
+  border-top:1px solid var(--line); padding-top:16px; }
+a { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>splunk-bots-hunts</h1>
+<p>Threat hunting walkthroughs for Splunk's Boss of the SOC v3 dataset.</p>
+</header>
+<div class="stats">
+<div class="stat"><b>4</b><span>scenarios</span></div>
+<div class="stat"><b>16</b><span>hunts</span></div>
+<div class="stat"><b>16</b><span>ATT&amp;CK techniques</span></div>
+</div>
+<h2>ATT&amp;CK coverage</h2>
+<table class="matrix">
+<thead><tr><th class="tech">Technique</th><th>01</th><th>02</th><th>03</th><th>04</th></tr></thead>
+<tbody><tr><th class="tech"><code>T1021.001</code> Remote Services: Remote Desktop Protocol</th><td class="miss"></td><td class="hit">●</td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1021.002</code> Remote Services: SMB/Windows Admin Shares</th><td class="miss"></td><td class="hit">●</td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1027</code> Obfuscated Files or Information</th><td class="miss"></td><td class="miss"></td><td class="miss"></td><td class="hit">●</td></tr><tr><th class="tech"><code>T1053.005</code> Scheduled Task/Job: Scheduled Task</th><td class="miss"></td><td class="miss"></td><td class="miss"></td><td class="hit">●</td></tr><tr><th class="tech"><code>T1059.001</code> Command and Scripting Interpreter: PowerShell</th><td class="miss"></td><td class="miss"></td><td class="miss"></td><td class="hit">●</td></tr><tr><th class="tech"><code>T1059.007</code> Command and Scripting Interpreter: JavaScript</th><td class="miss"></td><td class="miss"></td><td class="hit">●</td><td class="miss"></td></tr><tr><th class="tech"><code>T1071.001</code> Application Layer Protocol: Web Protocols</th><td class="miss"></td><td class="miss"></td><td class="hit">●</td><td class="miss"></td></tr><tr><th class="tech"><code>T1078.002</code> Valid Accounts: Domain Accounts</th><td class="miss"></td><td class="hit">●</td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1078.004</code> Valid Accounts: Cloud Accounts</th><td class="hit">●</td><td class="miss"></td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1087.004</code> Account Discovery: Cloud Account</th><td class="hit">●</td><td class="miss"></td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1105</code> Ingress Tool Transfer</th><td class="miss"></td><td class="miss"></td><td class="miss"></td><td class="hit">●</td></tr><tr><th class="tech"><code>T1112</code> Modify Registry</th><td class="miss"></td><td class="miss"></td><td class="miss"></td><td class="hit">●</td></tr><tr><th class="tech"><code>T1189</code> Drive-by Compromise</th><td class="miss"></td><td class="miss"></td><td class="hit">●</td><td class="miss"></td></tr><tr><th class="tech"><code>T1496</code> Resource Hijacking</th><td class="miss"></td><td class="miss"></td><td class="hit">●</td><td class="miss"></td></tr><tr><th class="tech"><code>T1580</code> Cloud Infrastructure Discovery</th><td class="hit">●</td><td class="miss"></td><td class="miss"></td><td class="miss"></td></tr><tr><th class="tech"><code>T1619</code> Cloud Storage Object Discovery</th><td class="hit">●</td><td class="miss"></td><td class="miss"></td><td class="miss"></td></tr></tbody>
+</table>
+<h2>Scenarios</h2>
+<section class="card" id="01-aws-recon-bstoll"><h3><span class="badge">01</span>AWS reconnaissance via compromised IAM user `bstoll`</h3><p class="summary">On 2018-08-20, CloudTrail records 615 AWS API calls attributed to the IAM user bstoll originating mostly from 107.77.212.175 (an AT&amp;T Mobility IP outside Frothly&#x27;s normal range). The activity is broad rather than targeted: 64 distinct API actions across S3, EC2, IAM, and ELB, in a window of a few hours. Four of those calls are ConsoleLogin events, none of which used MFA.</p><div class="chips"><span class="chip">T1078.004</span><span class="chip">T1580</span><span class="chip">T1619</span><span class="chip">T1087.004</span></div><div class="hunts"><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">1</span>Which IAM user logged into the AWS Console without MFA?<span class="ans">bstoll</span></button><div class="spl"><pre>index=* sourcetype=aws:cloudtrail eventName=ConsoleLogin earliest=-10y
+| search &quot;additionalEventData.MFAUsed&quot;=No userIdentity.type=IAMUser
+| stats count by userIdentity.userName
+| sort -count
+| head 1
+| rename userIdentity.userName as user
+| fields user</pre><div class="meta">01-mfa-less-console-login.spl <span class="field">→ user</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">2</span>What external IP did bstoll&#x27;s session originate from?<span class="ans">107.77.212.175</span></button><div class="spl"><pre>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll earliest=-10y
+| search sourceIPAddress!=&quot;AWS Internal&quot; sourceIPAddress!=&quot;54.240.*&quot;
+| stats count by sourceIPAddress
+| sort -count
+| head 1
+| fields sourceIPAddress</pre><div class="meta">02-bstoll-primary-source-ip.spl <span class="field">→ sourceIPAddress</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">3</span>What MFA status was recorded on bstoll&#x27;s Console logins?<span class="ans">No</span></button><div class="spl"><pre>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll eventName=ConsoleLogin earliest=-10y
+| stats count by additionalEventData.MFAUsed
+| sort -count
+| head 1
+| rename additionalEventData.MFAUsed as mfa_used
+| fields mfa_used</pre><div class="meta">03-bstoll-mfa-status.spl <span class="field">→ mfa_used</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">4</span>How many distinct S3 buckets did bstoll enumerate?<span class="ans">16</span></button><div class="spl"><pre>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll earliest=-10y
+| search eventName=GetBucket* OR eventName=ListBucket*
+| stats dc(requestParameters.bucketName) as bucket_count
+| fields bucket_count</pre><div class="meta">04-buckets-enumerated.spl <span class="field">→ bucket_count</span></div></div></div></div></section><section class="card" id="02-bstoll-l-endpoint"><h3><span class="badge">02</span>BSTOLL-L endpoint logon profile</h3><p class="summary">Scenario 01 established that the IAM user bstoll was compromised and used to enumerate AWS on 2018-08-20 from a residential AT&amp;T IP without MFA. The natural next question: did the laptop BSTOLL-L itself get popped, or were the AWS credentials stolen by some other vector?</p><div class="chips"><span class="chip">T1021.001</span><span class="chip">T1021.002</span><span class="chip">T1078.002</span></div><div class="hunts"><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">1</span>Which host has the highest WinEventLog:Security event volume?<span class="ans">BSTOLL-L</span></button><div class="spl"><pre>index=* EventCode=4624 earliest=-10y
+| stats count by host
+| sort -count
+| head 1
+| fields host</pre><div class="meta">01-most-active-host.spl <span class="field">→ host</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">2</span>What is the dominant Logon_Type on BSTOLL-L&#x27;s 4624 events?<span class="ans">5</span></button><div class="spl"><pre>index=* host=BSTOLL-L EventCode=4624 earliest=-10y
+| stats count by Logon_Type
+| sort -count
+| head 1
+| fields Logon_Type</pre><div class="meta">02-dominant-logon-type.spl <span class="field">→ Logon_Type</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">3</span>How many distinct external source IPs appear in BSTOLL-L&#x27;s 4624 events?<span class="ans">0</span></button><div class="spl"><pre>index=* host=BSTOLL-L EventCode=4624 earliest=-10y
+| eval is_external = if(
+    Source_Network_Address != &quot;-&quot;
+        AND NOT cidrmatch(&quot;127.0.0.0/8&quot;, Source_Network_Address)
+        AND NOT cidrmatch(&quot;10.0.0.0/8&quot;, Source_Network_Address)
+        AND NOT cidrmatch(&quot;172.16.0.0/12&quot;, Source_Network_Address)
+        AND NOT cidrmatch(&quot;192.168.0.0/16&quot;, Source_Network_Address),
+    1, 0)
+| stats count as total, sum(is_external) as external_count
+| eval external_count = coalesce(external_count, 0)
+| fields external_count</pre><div class="meta">03-external-source-ips.spl <span class="field">→ external_count</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">4</span>How many interactive (Type=2) logons happened on BSTOLL-L?<span class="ans">4</span></button><div class="spl"><pre>index=* host=BSTOLL-L EventCode=4624 Logon_Type=2 earliest=-10y
+| stats count
+| fields count</pre><div class="meta">04-interactive-logons.spl <span class="field">→ count</span></div></div></div></div></section><section class="card" id="03-bstoll-coinhive-cryptojacking"><h3><span class="badge">03</span>BSTOLL-L browser cryptojacking (Coinhive)</h3><p class="summary">Scenario 02 ruled out the easy endpoint-compromise answers for BSTOLL-L: no remote logons, no external 4624 source IPs, a normal service-logon profile. The leftover hypotheses all ran through the browser or a local process under bstoll&#x27;s own session. So I went looking at what BSTOLL-L was actually talking to on the wire.</p><div class="chips"><span class="chip">T1496</span><span class="chip">T1059.007</span><span class="chip">T1071.001</span><span class="chip">T1189</span></div><div class="hunts"><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">1</span>Which internal host resolved coinhive.com mining domains?<span class="ans">192.168.247.131</span></button><div class="spl"><pre>index=* sourcetype=stream:dns query=*coinhive.com earliest=-10y
+| stats count by src_ip
+| sort -count
+| head 1
+| fields src_ip</pre><div class="meta">01-coinhive-internal-host.spl <span class="field">→ src_ip</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">2</span>How many distinct coinhive.com FQDNs did the host resolve?<span class="ans">6</span></button><div class="spl"><pre>index=* sourcetype=stream:dns src_ip=192.168.247.131 query=*coinhive.com earliest=-10y
+| stats dc(query) as fqdn_count
+| fields fqdn_count</pre><div class="meta">02-coinhive-fqdns.spl <span class="field">→ fqdn_count</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">3</span>How many distinct coinhive mining websocket endpoints (ws*.coinhive.com) were resolved?<span class="ans">5</span></button><div class="spl"><pre>index=* sourcetype=stream:dns src_ip=192.168.247.131 query=ws*.coinhive.com earliest=-10y
+| stats dc(query) as endpoint_count
+| fields endpoint_count</pre><div class="meta">03-mining-endpoints.spl <span class="field">→ endpoint_count</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">4</span>What is the MAC address of the host running the in-browser miner?<span class="ans">00:0C:29:B8:44:5E</span></button><div class="spl"><pre>index=* sourcetype=stream:dns query=*coinhive.com src_ip=192.168.247.131 earliest=-10y
+| stats count by src_mac
+| sort -count
+| head 1
+| fields src_mac</pre><div class="meta">04-infected-host-mac.spl <span class="field">→ src_mac</span></div></div></div></div></section><section class="card" id="04-fyodor-powershell-empire"><h3><span class="badge">04</span>FYODOR-L PowerShell implant (Empire-style)</h3><p class="summary">FYODOR-L.froth.ly is the loudest Sysmon host in the dataset, and the noise turns out to be a live PowerShell implant. The host runs powershell.exe -NonI -W hidden -c &quot;IEX (...FromBase64String((gp HKLM:\Software\Microsoft\Network debug).debug)))&quot;. That one line is the whole tradecraft: read a base64 blob out of a registry value, decode it in memory, and execute it with IEX. Nothing touches disk, so file-hash and AV signatures never get a look.</p><div class="chips"><span class="chip">T1059.001</span><span class="chip">T1027</span><span class="chip">T1105</span><span class="chip">T1053.005</span><span class="chip">T1112</span></div><div class="hunts"><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">1</span>Which host ran in-memory PowerShell that decodes a base64 payload?<span class="ans">FYODOR-L.froth.ly</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* earliest=-10y
+| stats count by Computer
+| sort -count
+| head 1
+| fields Computer</pre><div class="meta">01-encoded-ps-host.spl <span class="field">→ Computer</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">2</span>Which registry path stored the encoded implant?<span class="ans">HKLM:\Software\Microsoft\Network</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* CommandLine=*HKLM* earliest=-10y
+| rex field=CommandLine &quot;gp (?&lt;regpath&gt;HKLM:\S+)&quot;
+| stats count by regpath
+| sort -count
+| head 1
+| fields regpath</pre><div class="meta">02-registry-payload-path.spl <span class="field">→ regpath</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">3</span>What URL did the initial PowerShell stager download from?<span class="ans">http://bit.ly/e0Mw9w</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*DownloadString* earliest=-10y
+| rex field=CommandLine &quot;(?&lt;url&gt;https?://[a-zA-Z0-9./_-]+)&quot;
+| stats count by url
+| sort -count
+| head 1
+| fields url</pre><div class="meta">03-stager-url.spl <span class="field">→ url</span></div></div></div><div class="hunt"><button class="hq" onclick="this.parentNode.classList.toggle('open')"><span class="num">4</span>Which non-SYSTEM user account executed the implant?<span class="ans">AzureAD\FyodorMalteskesko</span></button><div class="spl"><pre>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* earliest=-10y
+| search User!=&quot;*SYSTEM&quot;
+| stats count by User
+| sort -count
+| head 1
+| fields User</pre><div class="meta">04-implant-user.spl <span class="field">→ User</span></div></div></div></div></section>
+<footer>Generated from the scenario sources by
+<code>harness/build_report.py</code>. Click a hunt to see its SPL.</footer>
+</div>
+</body>
+</html>

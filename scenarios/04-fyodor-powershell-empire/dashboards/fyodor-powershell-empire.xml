@@ -1,0 +1,53 @@
+<form>
+  <label>FYODOR-L PowerShell implant</label>
+  <description>Empire-style PowerShell foothold on FYODOR-L. Sysmon process-create view of encoded PowerShell, download cradles, and registry persistence.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Encoded / download-cradle PowerShell by host</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 (CommandLine=*FromBase64String* OR CommandLine=*DownloadString* OR CommandLine=*-enc*) | stats count by Computer | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>FYODOR-L suspicious PowerShell command lines</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Computer=FYODOR-L.froth.ly Image=*powershell.exe (CommandLine=*FromBase64String* OR CommandLine=*DownloadString* OR CommandLine=*-enc*) | stats count by User, CommandLine | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Parent processes of the implant (persistence view)</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Computer=FYODOR-L.froth.ly CommandLine=*FromBase64String* | stats count by ParentImage, ParentCommandLine, User</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</form>
