@@ -1,0 +1,20 @@
+detections:
+  - id: aws-consolelogin-no-mfa
+    name: AWS Console login without MFA (IAM user)
+    description: >
+      An IAM user authenticated to the AWS Console without MFA. High-signal on
+      its own; in this dataset it fired on the first of bstoll's four logins,
+      before any S3 enumeration started.
+    search: |
+      sourcetype=aws:cloudtrail eventName=ConsoleLogin
+      additionalEventData.MFAUsed=No userIdentity.type=IAMUser
+      | stats count min(_time) as firstTime values(sourceIPAddress) as src_ip
+          by userIdentity.userName
+      | rename userIdentity.userName as user
+    cron: "*/15 * * * *"
+    earliest: -24h
+    latest: now
+    risk: 60
+    attack:
+      - T1078.004
+    fixture_expect: fires

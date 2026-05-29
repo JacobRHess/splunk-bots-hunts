@@ -1,0 +1,54 @@
+<form>
+  <label>BSTOLL-L browser cryptojacking (Coinhive)</label>
+  <description>In-browser Coinhive miner on BSTOLL-L. stream:dns view of coinhive.com resolutions, mining-pool websocket nodes, and the source workstation.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>coinhive.com resolutions by source IP</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=stream:dns query=*coinhive.com | stats count by src_ip | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Mining endpoints resolved by BSTOLL-L</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=stream:dns src_ip=192.168.247.131 query=*coinhive.com | stats count, values(host_addr) as resolved_ip by query | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Coinhive DNS activity - timeline</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=stream:dns query=*coinhive.com | timechart span=1h count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+  </row>
+</form>

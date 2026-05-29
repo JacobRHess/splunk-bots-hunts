@@ -1,0 +1,27 @@
+detections:
+  - id: remote-logon-external-source
+    name: Remote interactive/network logon from external source
+    description: >
+      A 4624 network (type 3) or RemoteInteractive (type 10) logon whose source
+      address is outside RFC1918. This is the rule that would have caught remote
+      endpoint compromise. On BSTOLL-L it stays silent, which is the scenario 02
+      finding: the laptop was not reached over the network. Kept here as a
+      true-negative test against benign endpoint telemetry.
+    search: |
+      EventCode=4624 (Logon_Type=3 OR Logon_Type=10)
+      | eval is_external=if(match(Source_Network_Address, "^\d{1,3}(\.\d{1,3}){3}$")
+          AND NOT cidrmatch("10.0.0.0/8", Source_Network_Address)
+          AND NOT cidrmatch("172.16.0.0/12", Source_Network_Address)
+          AND NOT cidrmatch("192.168.0.0/16", Source_Network_Address)
+          AND NOT cidrmatch("127.0.0.0/8", Source_Network_Address), 1, 0)
+      | where is_external=1
+      | stats count by host, Source_Network_Address, Account_Name
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 70
+    attack:
+      - T1021.001
+      - T1021.002
+      - T1078.002
+    fixture_expect: silent

@@ -36,6 +36,7 @@ class Scenario:
     summary: str
     hunts: list[Hunt]
     techniques: list[tuple[str, str]]
+    detections: list[str]
 
 
 def parse_title(readme: str) -> str:
@@ -122,6 +123,9 @@ def load_scenarios() -> list[Scenario]:  # pragma: no cover
             for t in (attack or {}).get("techniques", [])
             if t.get("id")
         ]
+        det_file = path / "detections.yaml"
+        det_data = yaml.safe_load(det_file.read_text()) if det_file.exists() else {}
+        detections = [d["name"] for d in (det_data or {}).get("detections", []) if d.get("name")]
         scenarios.append(
             Scenario(
                 slug=path.name,
@@ -130,6 +134,7 @@ def load_scenarios() -> list[Scenario]:  # pragma: no cover
                 summary=parse_summary(readme),
                 hunts=hunts,
                 techniques=techniques,
+                detections=detections,
             )
         )
     return scenarios
@@ -176,19 +181,26 @@ def render(scenarios: list[Scenario]) -> str:
                 f'<div class="meta">{_esc(h.file)}{field}</div></div>'
                 f"</div>"
             )
+        det_html = ""
+        if s.detections:
+            items = "".join(f"<li>{_esc(d)}</li>" for d in s.detections)
+            det_html = f'<div class="dets"><span>Detections</span><ul>{items}</ul></div>'
         cards.append(
             f'<section class="card" id="{_esc(s.slug)}">'
             f'<h3><span class="badge">{_esc(s.number)}</span>{_esc(s.title)}</h3>'
             f'<p class="summary">{_esc(s.summary)}</p>'
             f'<div class="chips">{chips}</div>'
             f'<div class="hunts">{"".join(hunt_blocks)}</div>'
+            f"{det_html}"
             f"</section>"
         )
 
     total_hunts = sum(len(s.hunts) for s in scenarios)
+    total_detections = sum(len(s.detections) for s in scenarios)
     return _PAGE.format(
         scenario_count=len(scenarios),
         hunt_count=total_hunts,
+        detection_count=total_detections,
         technique_count=len(techniques),
         matrix_head=matrix_head,
         matrix_rows="".join(matrix_rows),
@@ -261,6 +273,12 @@ table.matrix code {{ color:var(--accent); }}
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }}
 .meta {{ color:var(--muted); font-size:12px; margin:0 0 12px; }}
 .field {{ color:var(--accent); }}
+.dets {{ border-top:1px solid var(--line); padding-top:10px; }}
+.dets span {{ color:var(--muted); font-size:12px; text-transform:uppercase;
+  letter-spacing:.04em; }}
+.dets ul {{ margin:6px 0 0; padding-left:18px; }}
+.dets li {{ font-size:13px; margin:2px 0; }}
+.links {{ margin:12px 0 0; color:var(--muted); font-size:13px; }}
 footer {{ margin-top:48px; color:var(--muted); font-size:13px;
   border-top:1px solid var(--line); padding-top:16px; }}
 a {{ color:var(--accent); }}
@@ -275,8 +293,12 @@ a {{ color:var(--accent); }}
 <div class="stats">
 <div class="stat"><b>{scenario_count}</b><span>scenarios</span></div>
 <div class="stat"><b>{hunt_count}</b><span>hunts</span></div>
+<div class="stat"><b>{detection_count}</b><span>detections</span></div>
 <div class="stat"><b>{technique_count}</b><span>ATT&amp;CK techniques</span></div>
 </div>
+<p class="links">Deployable detections ship as a Splunk app
+(<code>splunk_app/froth_bots_hunts</code>). ATT&amp;CK coverage is also exported as a
+<a href="attack-navigator-layer.json">Navigator layer</a>.</p>
 <h2>ATT&amp;CK coverage</h2>
 <div class="matrix-wrap">
 <table class="matrix">

@@ -1,0 +1,36 @@
+detections:
+  - id: encoded-inmemory-powershell
+    name: Encoded or in-memory PowerShell execution
+    description: >
+      A powershell.exe process whose command line decodes a base64 payload
+      (FromBase64String) or runs an encoded command (-enc). Both are rare on a
+      workstation and are the core of the FYODOR-L fileless implant.
+    search: |
+      sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1
+      Image=*powershell.exe (CommandLine=*FromBase64String* OR CommandLine=*-enc*)
+      | stats count values(CommandLine) as cmdlines by Computer, User
+    cron: "*/10 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 80
+    attack:
+      - T1059.001
+      - T1027
+    fixture_expect: fires
+  - id: powershell-parented-by-svchost
+    name: PowerShell launched by the Task Scheduler (svchost)
+    description: >
+      powershell.exe parented by svchost.exe almost always means a scheduled
+      task launched it. On FYODOR-L this is the SYSTEM-context persistence that
+      relaunches the implant via the Schedule service.
+    search: |
+      sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1
+      Image=*powershell.exe ParentImage=*svchost.exe
+      | stats count by Computer, User, ParentCommandLine
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 70
+    attack:
+      - T1053.005
+    fixture_expect: fires

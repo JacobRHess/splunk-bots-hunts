@@ -9,9 +9,9 @@ Threat hunting walkthroughs for Splunk's *Boss of the SOC v3* dataset.
 
 Every hunt in this repo is a documented investigation: the question, the SPL that answers it, the pivots that got me there, and the ATT&CK techniques touched. CI spins up a Splunk container, ingests fixture events over HEC, runs each hunt's SPL via the REST API, and asserts the expected answer, so the hunts can't silently rot when the SPL syntax changes or a field gets renamed.
 
-## Why hunts and not detections
+## Hunts and detections
 
-A detection answers "did this happen?" A hunt answers "what happened?" This repo is a portfolio of the second. Each scenario is a write-up of how I worked through a piece of the BOTSv3 intrusion, not a rule I would deploy to a SIEM.
+A detection answers "did this happen?" A hunt answers "what happened?" Each scenario starts as a hunt: a documented investigation of a piece of the BOTSv3 intrusion. It then ships the detection that investigation would have written, as deployable Splunk content. The hunts assert a known answer in CI; the detections assert they fire on the malicious slice and stay silent on benign data.
 
 ## Repo layout
 
@@ -19,13 +19,28 @@ A detection answers "did this happen?" A hunt answers "what happened?" This repo
 scenarios/<id>-<slug>/
 ├── README.md           narrative write-up
 ├── hunts/*.spl         one SPL per documented hunt
+├── detections.yaml     deployable correlation searches (fire/silent fixture test)
 ├── dashboards/*.xml    Splunk dashboard XML
 ├── fixtures/*.jsonl    fixture event slice per index (for CI)
 ├── answers.yaml        { hunts: [{ file, question, expected, field }] }
 └── attack.yaml         { techniques: [{ id, name }] }
 ```
 
+Generated, committed artifacts:
+
+```
+splunk_app/froth_bots_hunts/   installable Splunk app (dashboards + scheduled detections)
+docs/index.html                static HTML report (GitHub Pages ready)
+docs/attack-navigator-layer.json  MITRE ATT&CK Navigator layer
+```
+
 The full BOTSv3 dataset stays out of git. Fixtures committed alongside each hunt are tiny event slices, just enough to exercise the SPL in CI.
+
+## Splunk app
+
+`splunk_app/froth_bots_hunts/` is generated from the scenario sources by `harness/build_splunk_app.py`. It bundles every scenario dashboard as a view and every `detections.yaml` entry as a scheduled, ATT&CK-annotated saved search. Copy it to `$SPLUNK_HOME/etc/apps/` and restart, or upload it via Manage Apps. CI ingests the fixtures and runs `harness/run_detections.py` to assert each detection's `fixture_expect` (`fires` or `silent`), so the shipped rules can't rot.
+
+The `docs/attack-navigator-layer.json` layer uploads directly to the [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) ("Open Existing Layer"), scored by scenario coverage.
 
 ## Local development
 
@@ -38,25 +53,23 @@ docker compose -f docker/compose.yml up -d
 
 Splunk Web is at <http://localhost:8000>. The dev admin password is `changeme` (set `SPLUNK_PASSWORD` env to override). The first time, install the BOTSv3 app via Manage Apps → Install from file; the bundle lives at <https://github.com/splunk/botsv3>.
 
-Run all documented hunts against the running Splunk:
+Run all documented hunts against the running Splunk, then assert the detections fire (or stay silent):
 
 ```powershell
 uv run python harness/run_hunts.py
+uv run python harness/run_detections.py
 ```
 
-Generate the ATT&CK coverage page from per-scenario `attack.yaml` files:
+Regenerate the committed artifacts (coverage page, HTML report, ATT&CK Navigator layer, Splunk app):
 
 ```powershell
-uv run python harness/attack_aggregate.py
+uv run python harness/attack_aggregate.py    # docs/attack-coverage.md (gitignored)
+uv run python harness/build_report.py        # docs/index.html
+uv run python harness/build_attack_layer.py  # docs/attack-navigator-layer.json
+uv run python harness/build_splunk_app.py    # splunk_app/froth_bots_hunts/
 ```
 
-Build the static HTML report (scenarios, hunts, SPL, ATT&CK matrix) into `docs/index.html`:
-
-```powershell
-uv run python harness/build_report.py
-```
-
-The report is a single self-contained file. Serve it locally or publish it with GitHub Pages (Settings → Pages → `main` / `docs`).
+The HTML report is a single self-contained file. Serve it locally or publish it with GitHub Pages (Settings → Pages → `main` / `docs`).
 
 ## CI
 

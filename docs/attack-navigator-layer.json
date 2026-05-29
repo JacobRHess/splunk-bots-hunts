@@ -1,0 +1,116 @@
+{
+  "name": "splunk-bots-hunts coverage",
+  "versions": {
+    "attack": "14",
+    "navigator": "4.9.1",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "Techniques exercised by the splunk-bots-hunts scenarios over BOTS v3.",
+  "techniques": [
+    {
+      "techniqueID": "T1021.001",
+      "score": 1,
+      "comment": "covered by 02-bstoll-l-endpoint",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1021.002",
+      "score": 1,
+      "comment": "covered by 02-bstoll-l-endpoint",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1027",
+      "score": 1,
+      "comment": "covered by 04-fyodor-powershell-empire",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1053.005",
+      "score": 1,
+      "comment": "covered by 04-fyodor-powershell-empire",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1059.001",
+      "score": 1,
+      "comment": "covered by 04-fyodor-powershell-empire",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1059.007",
+      "score": 1,
+      "comment": "covered by 03-bstoll-coinhive-cryptojacking",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1071.001",
+      "score": 1,
+      "comment": "covered by 03-bstoll-coinhive-cryptojacking",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1078.002",
+      "score": 1,
+      "comment": "covered by 02-bstoll-l-endpoint",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1078.004",
+      "score": 1,
+      "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1087.004",
+      "score": 1,
+      "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1112",
+      "score": 1,
+      "comment": "covered by 04-fyodor-powershell-empire",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1189",
+      "score": 1,
+      "comment": "covered by 03-bstoll-coinhive-cryptojacking",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1496",
+      "score": 1,
+      "comment": "covered by 03-bstoll-coinhive-cryptojacking",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1580",
+      "score": 1,
+      "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1619",
+      "score": 1,
+      "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#dbeafe",
+      "#58a6ff",
+      "#1f6feb"
+    ],
+    "minValue": 0,
+    "maxValue": 1
+  },
+  "legendItems": [],
+  "showTacticRowBackground": true,
+  "tacticRowBackground": "#161b22",
+  "selectTechniquesAcrossTactics": true,
+  "hideDisabled": false
+}

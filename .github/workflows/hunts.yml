@@ -75,6 +75,9 @@ jobs:
       - name: Run hunts
         run: uv run python harness/run_hunts.py
 
+      - name: Run detections (assert fire / true-negative)
+        run: uv run python harness/run_detections.py
+
       - name: Stop Splunk
         if: always()
         run: docker compose -f docker/compose.yml down -v

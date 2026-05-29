@@ -22,7 +22,9 @@ SID_RE = re.compile(r"<sid>(.+?)</sid>")
 SEARCH_TIMEOUT_SECONDS = 120
 
 
-def run_search(spl: str) -> list[dict[str, Any]]:  # pragma: no cover
+def run_search(
+    spl: str, earliest: str | None = None, latest: str | None = None
+) -> list[dict[str, Any]]:  # pragma: no cover
     session = requests.Session()
     session.auth = (SPLUNK_USER, SPLUNK_PASSWORD)
     session.verify = False
@@ -31,9 +33,14 @@ def run_search(spl: str) -> list[dict[str, Any]]:  # pragma: no cover
     if not re.match(r"(search\b|\|)", query):
         query = f"search {query}"
 
+    data = {"search": query}
+    if earliest is not None:
+        data["earliest_time"] = earliest
+    if latest is not None:
+        data["latest_time"] = latest
     create = session.post(
         f"{SPLUNK_HOST}/services/search/jobs",
-        data={"search": query},
+        data=data,
         timeout=30,
     )
     create.raise_for_status()

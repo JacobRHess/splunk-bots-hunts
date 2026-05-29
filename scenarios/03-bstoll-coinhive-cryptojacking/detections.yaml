@@ -1,0 +1,20 @@
+detections:
+  - id: cryptomining-pool-dns
+    name: Cryptomining pool DNS resolution
+    description: >
+      An internal host resolved a known browser/CPU cryptomining pool domain.
+      Cryptojacking is loud in DNS because the miner cannot start without
+      resolving its pool, so a small known-pool list gives near-zero false
+      positives. Fired on BSTOLL-L resolving coinhive.com plus its ws* nodes.
+    search: |
+      sourcetype=stream:dns (query=*coinhive.com OR query=*minexmr.com
+          OR query=*nanopool.org OR query=*xmrpool.* OR query=*cryptonight.*)
+      | stats count dc(query) as distinct_fqdns values(query) as fqdns by src_ip
+    cron: "*/10 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 50
+    attack:
+      - T1496
+      - T1071.001
+    fixture_expect: fires

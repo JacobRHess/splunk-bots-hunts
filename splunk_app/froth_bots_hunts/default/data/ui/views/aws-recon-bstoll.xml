@@ -1,0 +1,74 @@
+<form>
+  <label>AWS Recon: bstoll</label>
+  <description>Hunting view for compromised IAM user bstoll's AWS reconnaissance, 2018-08-20.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>bstoll CloudTrail activity over time</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll | timechart span=10m count by eventSource</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Source IPs (bstoll)</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll | stats count, min(_time) as first, max(_time) as last by sourceIPAddress | eval first=strftime(first,"%Y-%m-%d %H:%M:%S"), last=strftime(last,"%Y-%m-%d %H:%M:%S") | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Console logins (MFA status)</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll eventName=ConsoleLogin | table _time, sourceIPAddress, additionalEventData.MFAUsed, responseElements.ConsoleLogin | sort _time</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>S3 buckets enumerated</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll (eventName=GetBucket* OR eventName=ListBucket*) | stats count, values(eventName) as actions by requestParameters.bucketName | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>EC2 / IAM enumeration verbs</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll (eventName=Describe* OR eventName=List*) | stats count by eventName | sort -count | head 20</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</form>
