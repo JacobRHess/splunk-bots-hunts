@@ -5,9 +5,11 @@
 [![python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
 [![license MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Threat hunting walkthroughs for Splunk's *Boss of the SOC v3* dataset.
+**A Boss of the SOC v3 investigation you can run, and that proves itself in CI.**
 
-Every hunt in this repo is a documented investigation: the question, the SPL that answers it, the pivots that got me there, and the ATT&CK techniques touched. CI spins up a Splunk container, ingests fixture events over HEC, runs each hunt's SPL via the REST API, and asserts the expected answer, so the hunts can't silently rot when the SPL syntax changes or a field gets renamed.
+Most BOTS v3 writeups are a blog post with SPL screenshots: static, one question at a time, impossible to tell if they still hold. This one is a repo. On every commit, CI boots a Splunk container, replays the evidence as fixtures over HEC, runs every hunt and asserts its answer, runs every detection and asserts it fires on malicious data while staying silent on benign, and validates the installable app with `btool`. If a finding rots or a rule stops firing, the build breaks.
+
+Five scenarios follow one intrusion across the telemetry, not twenty disconnected questions: a compromised AWS account (01), the laptop behind it (02), a browser cryptominer on that laptop (03), a fileless PowerShell implant on a second host (04), and that same `fyodor` identity reused against Azure AD from a Hong Kong VPS (05). Each scenario is a documented hunt (the question, the SPL, the pivots, the ATT&CK techniques) that then ships the detection it would have written, tested against both malicious and benign fixtures and packaged as an installable Splunk app.
 
 ## Hunts and detections
 
