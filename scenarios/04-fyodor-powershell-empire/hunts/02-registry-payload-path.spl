@@ -1,0 +1,6 @@
+index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 CommandLine=*FromBase64String* CommandLine=*HKLM* earliest=-10y
+| rex field=CommandLine "gp (?<regpath>HKLM:\S+)"
+| stats count by regpath
+| sort -count
+| head 1
+| fields regpath

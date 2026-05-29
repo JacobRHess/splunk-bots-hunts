@@ -50,6 +50,14 @@ Generate the ATT&CK coverage page from per-scenario `attack.yaml` files:
 uv run python harness/attack_aggregate.py
 ```
 
+Build the static HTML report (scenarios, hunts, SPL, ATT&CK matrix) into `docs/index.html`:
+
+```powershell
+uv run python harness/build_report.py
+```
+
+The report is a single self-contained file. Serve it locally or publish it with GitHub Pages (Settings → Pages → `main` / `docs`).
+
 ## CI
 
 Two workflows, both on push and PR:
@@ -73,4 +81,4 @@ All third-party actions are SHA-pinned. Workflows declare least-privilege `permi
 
 ## Status
 
-Three scenarios shipped, following one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Adding more as the dataset gets worked through.
+Four scenarios shipped. The first three follow one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Scenario 04 turns to a second compromised host, `FYODOR-L`, running a fileless PowerShell implant. A generated HTML report at `docs/index.html` indexes every scenario, hunt, and ATT&CK technique. Adding more as the dataset gets worked through.

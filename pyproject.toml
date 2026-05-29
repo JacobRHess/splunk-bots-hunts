@@ -27,6 +27,7 @@ dev = [
 bots-hunts-run = "harness.run_hunts:main"
 bots-hunts-ingest = "harness.ingest_fixtures:main"
 bots-hunts-attack = "harness.attack_aggregate:main"
+bots-hunts-report = "harness.build_report:main"
 
 [build-system]
 requires = ["hatchling"]
