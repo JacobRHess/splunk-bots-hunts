@@ -4,7 +4,9 @@
 
 [Scenario 02](../02-bstoll-l-endpoint/) ruled out the easy endpoint-compromise answers for `BSTOLL-L`: no remote logons, no external 4624 source IPs, a normal service-logon profile. The leftover hypotheses all ran through the browser or a local process under `bstoll`'s own session. So I went looking at what `BSTOLL-L` was actually talking to on the wire.
 
-The DNS told the story immediately. On 2018-08-20, `BSTOLL-L` (`192.168.247.131`) resolved `coinhive.com` and a fan of `ws*.coinhive.com` subdomains. Coinhive is the in-browser Monero miner that defined the 2017-2018 cryptojacking wave. The `ws*` hosts are its mining-pool websocket nodes. This is a browser that loaded a page (or an ad) carrying the Coinhive miner JavaScript, then opened long-lived websocket sessions to the pool to hash on the visitor's CPU.
+The DNS told the story immediately. On 2018-08-20, `BSTOLL-L` (`192.168.247.131`) resolved `coinhive.com` and a fan of `ws*.coinhive.com` subdomains. Coinhive is the in-browser Monero miner that defined the 2017-2018 cryptojacking wave. The `ws*` hosts are its mining-pool websocket nodes. This is a browser that loaded a page carrying the Coinhive miner JavaScript, then opened long-lived websocket sessions to the pool to hash on the visitor's CPU.
+
+`stream:http` names the delivery page: `www.brewertalk.com`, a brewing forum `BSTOLL-L` was browsing. The forum was serving the Coinhive script, so the miner started the moment the page loaded. No download, no install, no user choice beyond visiting a beer site.
 
 ## How I worked it
 
@@ -35,7 +37,7 @@ This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-co
 | T1496 Resource Hijacking | In-browser Monero miner hashing on `BSTOLL-L`'s CPU |
 | T1059.007 JavaScript | Coinhive miner runs as page JavaScript, no binary on disk |
 | T1071.001 Web Protocols | Long-lived websocket sessions to `ws*.coinhive.com` pool nodes |
-| T1189 Drive-by Compromise | Miner delivered through web content / ad loaded in the browser |
+| T1189 Drive-by Compromise | Miner delivered by `www.brewertalk.com`, a forum BSTOLL-L was browsing |
 
 ## What I would have detected
 
