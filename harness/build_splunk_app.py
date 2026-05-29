@@ -35,6 +35,7 @@ class Detection:
     earliest: str
     latest: str
     severity: int
+    risk: int
     attack: list[str]
 
 
@@ -70,6 +71,7 @@ def load_detections(scenarios_dir: Path) -> list[Detection]:  # pragma: no cover
                     earliest=str(det.get("earliest", "-60m")),
                     latest=str(det.get("latest", "now")),
                     severity=_severity(int(det.get("risk", 50))),
+                    risk=int(det.get("risk", 50)),
                     attack=list(det.get("attack", [])),
                 )
             )
@@ -117,6 +119,8 @@ def render_savedsearches(detections: list[Detection]) -> str:
                     "alert.track = 1",
                     f"alert.severity = {det.severity}",
                     "action.notable = 1",
+                    "action.risk = 1",
+                    f"action.risk.param._risk_score = {det.risk}",
                     "action.correlationsearch.enabled = 1",
                     f"action.correlationsearch.label = BOTS - {det.name}",
                     f"action.correlationsearch.annotations = {annotations}",

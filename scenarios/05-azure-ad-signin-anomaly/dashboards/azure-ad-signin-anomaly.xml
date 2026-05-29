@@ -1,0 +1,50 @@
+<form>
+  <label>Azure AD sign-in anomalies</label>
+  <description>Frothly Azure AD sign-in review: foreign geo-IP logins, source addresses, and failed-sign-in spread across accounts.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Successful sign-ins by country</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=ms:aad:signin loginStatus=Success | stats count by location.country | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Foreign (non US/CA) sign-ins by account and IP</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=ms:aad:signin loginStatus=Success NOT (location.country=US OR location.country=CA) | stats count by userPrincipalName, ipAddress, location.country | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Failed sign-ins by account</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=ms:aad:signin loginStatus=Failure | stats count by userPrincipalName, ipAddress | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</form>

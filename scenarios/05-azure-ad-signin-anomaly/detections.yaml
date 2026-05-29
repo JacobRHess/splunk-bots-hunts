@@ -1,0 +1,35 @@
+detections:
+  - id: aad-signin-foreign-country
+    name: Azure AD sign-in from outside North America
+    description: >
+      A successful Azure AD sign-in whose geo-IP country is not US or CA. For a
+      Colorado and California brewery this is high-signal. Surfaces the fyodor
+      and bgist sign-ins from a Hong Kong hosting IP, the dominant anomaly here.
+    search: |
+      sourcetype=ms:aad:signin loginStatus=Success
+      NOT (location.country=US OR location.country=CA)
+      | stats count values(location.country) as countries by userPrincipalName, ipAddress
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 65
+    attack:
+      - T1078.004
+    fixture_expect: fires
+  - id: aad-failed-signin-spray
+    name: Azure AD failed sign-ins across multiple accounts
+    description: >
+      Failed Azure AD sign-ins spread across several accounts in a short window,
+      the shape of a password spray. Fires when three or more distinct users
+      fail, which they do here from the same Hong Kong source.
+    search: |
+      sourcetype=ms:aad:signin loginStatus=Failure
+      | stats dc(userPrincipalName) as users count as failures
+      | where users>=3
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 55
+    attack:
+      - T1110.003
+    fixture_expect: fires

@@ -94,4 +94,6 @@ All third-party actions are SHA-pinned. Workflows declare least-privilege `permi
 
 ## Status
 
-Four scenarios shipped. The first three follow one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Scenario 04 turns to a second compromised host, `FYODOR-L`, running a fileless PowerShell implant. A generated HTML report at `docs/index.html` indexes every scenario, hunt, and ATT&CK technique. Adding more as the dataset gets worked through.
+Five scenarios shipped: 20 hunts and 7 deployable detections across 16 ATT&CK techniques. The first three follow one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Scenario 04 turns to a second compromised host, `FYODOR-L`, running a fileless PowerShell implant. Scenario 05 follows that same `fyodor` identity off the endpoint and into Azure AD, where the credentials sign in from a Hong Kong VPS. A generated HTML report at `docs/index.html` indexes every scenario, hunt, detection, and ATT&CK technique. Adding more as the dataset gets worked through.
+
+Hunts are written with `index=*` so they run against either the real `index=botsv3` or the CI fixture index; the generated detections are scoped to `index=botsv3` for deployment.

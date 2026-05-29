@@ -40,11 +40,11 @@ class Scenario:
 
 
 def parse_title(readme: str) -> str:
-    """First markdown H1, with the leading 'NN — ' prefix stripped."""
+    """First markdown H1, with the leading 'NN — ' prefix and inline markdown stripped."""
     for line in readme.splitlines():
         if line.startswith("# "):
-            text = line[2:].strip()
-            return re.sub(r"^\d+\s*[—-]\s*", "", text)
+            text = re.sub(r"^\d+\s*[—-]\s*", "", line[2:].strip())
+            return _strip_md(text)
     return ""
 
 

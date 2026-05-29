@@ -1,0 +1,3 @@
+index=* sourcetype=ms:aad:signin loginStatus=Failure earliest=-10y
+| stats count as failures
+| fields failures

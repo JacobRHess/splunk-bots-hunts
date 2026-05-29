@@ -25,7 +25,9 @@ def main() -> int:
             with attack_file.open() as f:
                 data = yaml.safe_load(f) or {}
             for technique in data.get("techniques", []):
-                tid = technique["id"]
+                tid = technique.get("id")
+                if not tid:
+                    continue
                 names[tid] = technique.get("name", "")
                 scenarios[tid].append(scenario.name)
 

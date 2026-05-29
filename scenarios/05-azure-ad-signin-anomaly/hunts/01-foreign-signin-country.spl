@@ -1,0 +1,7 @@
+index=* sourcetype=ms:aad:signin loginStatus=Success earliest=-10y
+| search NOT (location.country=US OR location.country=CA)
+| stats count by location.country
+| sort -count
+| head 1
+| rename location.country as country
+| fields country
