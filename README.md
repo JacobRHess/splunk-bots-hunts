@@ -73,4 +73,4 @@ All third-party actions are SHA-pinned. Workflows declare least-privilege `permi
 
 ## Status
 
-Two scenarios shipped. Adding more as the dataset gets worked through.
+Three scenarios shipped, following one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Adding more as the dataset gets worked through.

@@ -1,0 +1,9 @@
+techniques:
+  - id: T1496
+    name: "Resource Hijacking"
+  - id: T1059.007
+    name: "Command and Scripting Interpreter: JavaScript"
+  - id: T1071.001
+    name: "Application Layer Protocol: Web Protocols"
+  - id: T1189
+    name: "Drive-by Compromise"
