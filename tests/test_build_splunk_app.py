@@ -48,9 +48,11 @@ def test_severity_thresholds() -> None:
 def test_render_savedsearches_stanza() -> None:
     out = render_savedsearches([_det()])
     assert "[BOTS - Test detection]" in out
-    # search is collapsed to a single line (no embedded newline in the value)
-    assert "search = sourcetype=x foo=bar | stats count by host" in out
+    # search is collapsed to one line and scoped to the dataset index for deployment
+    assert "search = index=botsv3 sourcetype=x foo=bar | stats count by host" in out
     assert 'action.correlationsearch.annotations = {"mitre_attack":["T1059.001"]}' in out
+    assert "action.correlationsearch.enabled = 1" in out
+    assert "action.correlationsearch.label = BOTS - Test detection" in out
     assert "cron_schedule = */15 * * * *" in out
     assert "# source: 01-x" in out
 

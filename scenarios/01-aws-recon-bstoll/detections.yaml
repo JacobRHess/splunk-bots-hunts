@@ -7,7 +7,7 @@ detections:
       before any S3 enumeration started.
     search: |
       sourcetype=aws:cloudtrail eventName=ConsoleLogin
-      "additionalEventData.MFAUsed"=No userIdentity.type=IAMUser
+      additionalEventData.MFAUsed=No userIdentity.type=IAMUser
       | stats count min(_time) as firstTime values(sourceIPAddress) as src_ip
           by userIdentity.userName
       | rename userIdentity.userName as user

@@ -9,7 +9,7 @@ detections:
       true-negative test against benign endpoint telemetry.
     search: |
       EventCode=4624 (Logon_Type=3 OR Logon_Type=10)
-      | eval is_external=if(Source_Network_Address!="-"
+      | eval is_external=if(match(Source_Network_Address, "^\d{1,3}(\.\d{1,3}){3}$")
           AND NOT cidrmatch("10.0.0.0/8", Source_Network_Address)
           AND NOT cidrmatch("172.16.0.0/12", Source_Network_Address)
           AND NOT cidrmatch("192.168.0.0/16", Source_Network_Address)

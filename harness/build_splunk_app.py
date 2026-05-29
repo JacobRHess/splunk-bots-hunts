@@ -20,6 +20,9 @@ SCENARIOS = ROOT / "scenarios"
 APP = "froth_bots_hunts"
 APP_DIR = ROOT / "splunk_app" / APP
 VERSION = "0.1.0"
+# Detection logic in detections.yaml is index-less so it can be tested against
+# the HEC-ingested fixtures; the deployed saved search is scoped to the dataset.
+DEPLOY_INDEX = "botsv3"
 
 
 @dataclass
@@ -102,7 +105,7 @@ def render_savedsearches(detections: list[Detection]) -> str:
                 [
                     f"[BOTS - {det.name}]",
                     f"description = {_oneline(det.description)}",
-                    f"search = {_oneline(det.search)}",
+                    f"search = index={DEPLOY_INDEX} {_oneline(det.search)}",
                     "disabled = 0",
                     "enableSched = 1",
                     f"cron_schedule = {det.cron}",
@@ -114,6 +117,8 @@ def render_savedsearches(detections: list[Detection]) -> str:
                     "alert.track = 1",
                     f"alert.severity = {det.severity}",
                     "action.notable = 1",
+                    "action.correlationsearch.enabled = 1",
+                    f"action.correlationsearch.label = BOTS - {det.name}",
                     f"action.correlationsearch.annotations = {annotations}",
                     f"request.ui_dispatch_app = {APP}",
                     f"# source: {det.scenario}",

@@ -100,6 +100,8 @@ def test_detections_are_well_formed(scenario: Path) -> None:
     data = yaml.safe_load(det_file.read_text()) or {}
     detections = data.get("detections", [])
     assert detections, f"{scenario.name}: detections.yaml has no detections"
+    attack = yaml.safe_load((scenario / "attack.yaml").read_text()) or {}
+    declared = {t["id"] for t in attack.get("techniques", [])}
     for det in detections:
         for key in ("id", "name", "search", "fixture_expect", "attack"):
             assert det.get(key), f"{scenario.name}: detection missing '{key}': {det.get('name')}"
@@ -111,6 +113,12 @@ def test_detections_are_well_formed(scenario: Path) -> None:
         assert "earliest=" not in det["search"], (
             f"{scenario.name}/{det['id']}: detection search should not hardcode earliest="
         )
+        # Every ATT&CK tag a detection claims must be declared in attack.yaml, the
+        # same source the Navigator layer reads, so coverage can't silently drift.
+        for tid in det["attack"]:
+            assert tid in declared, (
+                f"{scenario.name}/{det['id']}: ATT&CK {tid} not in attack.yaml"
+            )
 
 
 @pytest.mark.parametrize("scenario", SCENARIO_DIRS, ids=SCENARIO_IDS)
