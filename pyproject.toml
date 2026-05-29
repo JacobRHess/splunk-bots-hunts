@@ -48,7 +48,8 @@ extend-exclude = ["tools/_*.py"]
 select = ["E", "F", "I", "B", "UP", "N", "RUF", "S", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
+# S101: asserts are the point of tests. S314: tests parse repo-controlled XML, not untrusted input.
+"tests/**" = ["S101", "S314"]
 "harness/**" = ["S501"]
 
 [tool.mypy]

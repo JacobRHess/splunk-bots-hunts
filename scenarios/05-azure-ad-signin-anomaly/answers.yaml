@@ -1,0 +1,17 @@
+hunts:
+  - file: 01-foreign-signin-country.spl
+    question: Which country outside North America did successful Azure AD sign-ins come from?
+    expected: HK
+    field: country
+  - file: 02-foreign-signin-ip.spl
+    question: What source IP did the foreign sign-ins originate from?
+    expected: 104.207.83.63
+    field: ipAddress
+  - file: 03-foreign-signin-accounts.spl
+    question: How many distinct accounts had successful sign-ins from Hong Kong?
+    expected: "2"
+    field: accounts
+  - file: 04-failed-signins.spl
+    question: How many failed Azure AD sign-ins are in the logs?
+    expected: "10"
+    field: failures

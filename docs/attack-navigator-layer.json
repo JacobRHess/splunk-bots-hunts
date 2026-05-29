@@ -58,14 +58,20 @@
     },
     {
       "techniqueID": "T1078.004",
-      "score": 1,
-      "comment": "covered by 01-aws-recon-bstoll",
+      "score": 2,
+      "comment": "covered by 01-aws-recon-bstoll, 05-azure-ad-signin-anomaly",
       "enabled": true
     },
     {
       "techniqueID": "T1087.004",
       "score": 1,
       "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1110.003",
+      "score": 1,
+      "comment": "covered by 05-azure-ad-signin-anomaly",
       "enabled": true
     },
     {
@@ -106,7 +112,7 @@
       "#1f6feb"
     ],
     "minValue": 0,
-    "maxValue": 1
+    "maxValue": 2
   },
   "legendItems": [],
   "showTacticRowBackground": true,

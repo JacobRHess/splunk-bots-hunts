@@ -1,0 +1,3 @@
+index=* sourcetype=ms:aad:signin loginStatus=Success location.country=HK earliest=-10y
+| stats dc(userPrincipalName) as accounts
+| fields accounts

@@ -78,6 +78,14 @@ jobs:
       - name: Run detections (assert fire / true-negative)
         run: uv run python harness/run_detections.py
 
+      - name: Validate Splunk app loads (btool)
+        run: |
+          docker cp splunk_app/froth_bots_hunts splunk-bots:/opt/splunk/etc/apps/froth_bots_hunts
+          docker exec splunk-bots /opt/splunk/bin/splunk btool savedsearches list \
+            --app=froth_bots_hunts | tee /tmp/btool.out
+          grep -q "\[BOTS - " /tmp/btool.out
+          echo "Splunk parsed the app's savedsearches.conf"
+
       - name: Stop Splunk
         if: always()
         run: docker compose -f docker/compose.yml down -v

@@ -1,0 +1,5 @@
+techniques:
+  - id: T1078.004
+    name: "Valid Accounts: Cloud Accounts"
+  - id: T1110.003
+    name: "Brute Force: Password Spraying"
