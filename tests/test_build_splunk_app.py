@@ -15,6 +15,7 @@ from harness.build_splunk_app import (
     render_app_conf,
     render_meta,
     render_nav,
+    render_overview,
     render_savedsearches,
 )
 
@@ -104,12 +105,28 @@ def test_committed_views_match_scenario_dashboards() -> None:
 
 
 def test_committed_nav_up_to_date() -> None:
-    names = [n for n, _ in load_views(SCENARIOS)]
+    names = ["overview", *[n for n, _ in load_views(SCENARIOS)]]
     expected = render_nav(names)
     actual = (APP_DIR / "default" / "data" / "ui" / "nav" / "default.xml").read_text(
         encoding="utf-8"
     )
     assert actual.splitlines() == expected.splitlines()
+
+
+def test_render_overview_is_a_kpi_per_detection() -> None:
+    out = render_overview([_det(), _det(name="Second", scenario="02-y")])
+    assert "<dashboard>" in out and "Frothly intrusion overview" in out
+    assert out.count("<single>") == 2
+    assert "<title>Test detection</title>" in out
+    assert "<![CDATA[" in out  # search wrapped in CDATA so `>=` etc. don't break the XML
+
+
+def test_committed_overview_up_to_date() -> None:
+    expected = render_overview(load_detections(SCENARIOS))
+    actual = (APP_DIR / "default" / "data" / "ui" / "views" / "overview.xml").read_text(
+        encoding="utf-8"
+    )
+    assert actual.splitlines() == expected.splitlines(), "overview.xml is stale"
 
 
 def test_build_splunk_app_module_constants() -> None:

@@ -1,5 +1,6 @@
 <nav>
-  <view name="aws-recon-bstoll" default="true"/>
+  <view name="overview" default="true"/>
+  <view name="aws-recon-bstoll"/>
   <view name="bstoll-l-endpoint"/>
   <view name="bstoll-coinhive-cryptojacking"/>
   <view name="fyodor-powershell-empire"/>

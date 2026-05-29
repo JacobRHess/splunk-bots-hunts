@@ -1,0 +1,108 @@
+<dashboard>
+  <label>Frothly intrusion overview</label>
+  <description>One KPI per shipped detection across the five BOTS v3 scenarios. Red means the detection is firing on the data in the selected window.</description>
+  <row>
+    <panel>
+      <single>
+        <title>AWS Console login without MFA (IAM user)</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=aws:cloudtrail eventName=ConsoleLogin additionalEventData.MFAUsed=No userIdentity.type=IAMUser | stats count min(_time) as firstTime values(sourceIPAddress) as src_ip by userIdentity.userName | rename userIdentity.userName as user | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Remote interactive/network logon from external source</title>
+        <search>
+          <query><![CDATA[index=botsv3 EventCode=4624 (Logon_Type=3 OR Logon_Type=10) | eval is_external=if(match(Source_Network_Address, "^\d{1,3}(\.\d{1,3}){3}$") AND NOT cidrmatch("10.0.0.0/8", Source_Network_Address) AND NOT cidrmatch("172.16.0.0/12", Source_Network_Address) AND NOT cidrmatch("192.168.0.0/16", Source_Network_Address) AND NOT cidrmatch("127.0.0.0/8", Source_Network_Address), 1, 0) | where is_external=1 | stats count by host, Source_Network_Address, Account_Name | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Cryptomining pool DNS resolution</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=stream:dns (query=*coinhive.com OR query=*minexmr.com OR query=*nanopool.org OR query=*xmrpool.* OR query=*cryptonight.*) | stats count dc(query) as distinct_fqdns values(query) as fqdns by src_ip | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Encoded or in-memory PowerShell execution</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image=*powershell.exe (CommandLine=*FromBase64String* OR CommandLine=*-enc*) | stats count values(CommandLine) as cmdlines by Computer, User | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>PowerShell launched by the Task Scheduler (svchost)</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image=*powershell.exe ParentImage=*svchost.exe | stats count by Computer, User, ParentCommandLine | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Azure AD sign-in from outside North America</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=ms:aad:signin loginStatus=Success NOT (location.country=US OR location.country=CA) | stats count values(location.country) as countries by userPrincipalName, ipAddress | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Azure AD failed sign-ins across multiple accounts</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=ms:aad:signin loginStatus=Failure | stats dc(userPrincipalName) as users count as failures | where users>=3 | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+</dashboard>

@@ -132,6 +132,40 @@ def render_savedsearches(detections: list[Detection]) -> str:
     return "\n\n".join(stanzas) + "\n"
 
 
+def render_overview(detections: list[Detection]) -> str:
+    """A single-pane KPI board: one single-value tile per detection, red when firing."""
+    panels = []
+    for det in detections:
+        query = f"index={DEPLOY_INDEX} {_oneline(det.search)} | stats count"
+        panels.append(
+            "    <panel>\n"
+            "      <single>\n"
+            f"        <title>{det.name}</title>\n"
+            "        <search>\n"
+            f"          <query><![CDATA[{query}]]></query>\n"
+            "          <earliest>-10y</earliest>\n"
+            "          <latest>now</latest>\n"
+            "        </search>\n"
+            '        <option name="colorBy">value</option>\n'
+            '        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>\n'
+            '        <option name="rangeValues">[1]</option>\n'
+            '        <option name="useColors">1</option>\n'
+            "      </single>\n"
+            "    </panel>"
+        )
+    rows = [
+        "  <row>\n" + "\n".join(panels[i : i + 3]) + "\n  </row>" for i in range(0, len(panels), 3)
+    ]
+    return (
+        "<dashboard>\n"
+        "  <label>Frothly intrusion overview</label>\n"
+        "  <description>One KPI per shipped detection across the five BOTS v3 scenarios. "
+        "Red means the detection is firing on the data in the selected window.</description>\n"
+        + "\n".join(rows)
+        + "\n</dashboard>\n"
+    )
+
+
 def render_nav(view_names: list[str]) -> str:
     lines = ["<nav>"]
     for i, name in enumerate(view_names):
@@ -169,9 +203,11 @@ def render_app_readme(view_names: list[str], detection_count: int) -> str:
 def main() -> int:  # pragma: no cover
     detections = load_detections(SCENARIOS)
     views = load_views(SCENARIOS)
-    view_names = [name for name, _ in views]
+    # The generated overview leads the nav; scenario dashboards follow.
+    nav_views = ["overview", *[name for name, _ in views]]
 
-    (APP_DIR / "default" / "data" / "ui" / "views").mkdir(parents=True, exist_ok=True)
+    views_dir = APP_DIR / "default" / "data" / "ui" / "views"
+    views_dir.mkdir(parents=True, exist_ok=True)
     (APP_DIR / "default" / "data" / "ui" / "nav").mkdir(parents=True, exist_ok=True)
     (APP_DIR / "metadata").mkdir(parents=True, exist_ok=True)
 
@@ -179,19 +215,18 @@ def main() -> int:  # pragma: no cover
     (APP_DIR / "default" / "savedsearches.conf").write_text(
         render_savedsearches(detections), encoding="utf-8"
     )
+    (views_dir / "overview.xml").write_text(render_overview(detections), encoding="utf-8")
     (APP_DIR / "default" / "data" / "ui" / "nav" / "default.xml").write_text(
-        render_nav(view_names), encoding="utf-8"
+        render_nav(nav_views), encoding="utf-8"
     )
     (APP_DIR / "metadata" / "default.meta").write_text(render_meta(), encoding="utf-8")
     (APP_DIR / "README.md").write_text(
-        render_app_readme(view_names, len(detections)), encoding="utf-8"
+        render_app_readme(nav_views, len(detections)), encoding="utf-8"
     )
     for name, xml in views:
-        (APP_DIR / "default" / "data" / "ui" / "views" / f"{name}.xml").write_text(
-            xml, encoding="utf-8"
-        )
+        (views_dir / f"{name}.xml").write_text(xml, encoding="utf-8")
 
-    print(f"Wrote {APP_DIR} ({len(detections)} detections, {len(views)} views)")
+    print(f"Wrote {APP_DIR} ({len(detections)} detections, {len(views) + 1} views)")
     return 0
 
 
