@@ -56,6 +56,17 @@ def test_build_matrix_dedups_and_tracks_coverage() -> None:
     assert coverage["T1027"] == {"01"}
 
 
+def test_committed_report_is_up_to_date() -> None:
+    # The generated docs/index.html is committed so GitHub Pages can serve it.
+    # Guard against it drifting from the scenario sources. splitlines() normalizes
+    # the LF/CRLF difference between git's working tree and the generator's output.
+    expected = build_report.render(build_report.load_scenarios())
+    actual = build_report.OUTPUT.read_text(encoding="utf-8")
+    assert actual.splitlines() == expected.splitlines(), (
+        "docs/index.html is stale - regenerate with `uv run python harness/build_report.py`"
+    )
+
+
 def test_strip_md_removes_inline_markdown() -> None:
     assert build_report._strip_md("`code` and **bold** text") == "code and bold text"
     assert build_report._strip_md("see [scenario 01](../01-x/) here") == "see scenario 01 here"
