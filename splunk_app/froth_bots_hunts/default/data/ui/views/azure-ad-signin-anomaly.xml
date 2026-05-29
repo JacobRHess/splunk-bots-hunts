@@ -23,9 +23,37 @@
         <option name="charting.chart">bar</option>
       </chart>
     </panel>
+    <panel>
+      <title>Sign-in origin (choropleth)</title>
+      <map>
+        <search>
+          <query>index=* sourcetype=ms:aad:signin loginStatus=Success | eval country=case(location.country=="US","United States",location.country=="CA","Canada",location.country=="HK","Hong Kong S.A.R.",location.country=="GB","United Kingdom",location.country=="AU","Australia",true(),location.country) | stats count by country | geom geo_countries featureIdField=country</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="mapping.type">choropleth</option>
+        <option name="mapping.choroplethLayer.colorBins">5</option>
+        <option name="mapping.map.center">(20,60)</option>
+        <option name="mapping.map.zoom">2</option>
+      </map>
+    </panel>
   </row>
 
   <row>
+    <panel>
+      <title>Hong Kong sign-ins (count)</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=ms:aad:signin location.country=HK | stats count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
     <panel>
       <title>Foreign (non US/CA) sign-ins by account and IP</title>
       <table>

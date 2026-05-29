@@ -11,6 +11,27 @@ Most BOTS v3 writeups are a blog post with SPL screenshots: static, one question
 
 Five scenarios follow one intrusion across the telemetry, not twenty disconnected questions: a compromised AWS account (01), the laptop behind it (02), a browser cryptominer on that laptop (03), a fileless PowerShell implant on a second host (04), and that same `fyodor` identity reused against Azure AD from a Hong Kong VPS (05). Each scenario is a documented hunt (the question, the SPL, the pivots, the ATT&CK techniques) that then ships the detection it would have written, tested against both malicious and benign fixtures and packaged as an installable Splunk app.
 
+## The intrusion
+
+```mermaid
+flowchart LR
+    classDef cloud fill:#1f6feb22,stroke:#58a6ff,color:#c9d1d9;
+    classDef host fill:#3fb95022,stroke:#3fb950,color:#c9d1d9;
+
+    A["01 · AWS recon<br/>bstoll, no MFA<br/>T1078.004"]:::cloud
+    B["02 · BSTOLL-L logons<br/>remote compromise ruled out"]:::host
+    C["03 · Coinhive miner<br/>browser foothold<br/>T1496"]:::host
+    D["04 · PowerShell implant<br/>FYODOR-L, registry persistence<br/>T1059.001 / T1053.005"]:::host
+    E["05 · Azure AD sign-ins<br/>fyodor from HK VPS<br/>T1078.004 / T1110.003"]:::cloud
+
+    A -->|how were the keys stolen| B
+    B -->|browser was the weak point| C
+    C -. separate foothold .-> D
+    D -->|same identity reused| E
+```
+
+`bstoll` ties scenarios 01-03; `fyodor` ties 04-05. Two compromised users, four hosts and cloud tenants, one timeline on 2018-08-20.
+
 ## Hunts and detections
 
 A detection answers "did this happen?" A hunt answers "what happened?" Each scenario starts as a hunt: a documented investigation of a piece of the BOTSv3 intrusion. It then ships the detection that investigation would have written, as deployable Splunk content. The hunts assert a known answer in CI; the detections assert they fire on the malicious slice and stay silent on benign data.

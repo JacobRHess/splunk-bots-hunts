@@ -29,7 +29,8 @@ def test_app_views_well_formed(xml_file: Path) -> None:
 
 
 def test_app_has_a_view_per_dashboard() -> None:
-    assert len(APP_VIEWS) == len(DASHBOARDS), "app views and scenario dashboards out of sync"
+    # one view per scenario dashboard, plus the generated overview
+    assert len(APP_VIEWS) == len(DASHBOARDS) + 1, "app views and scenario dashboards out of sync"
 
 
 def test_nav_well_formed() -> None:

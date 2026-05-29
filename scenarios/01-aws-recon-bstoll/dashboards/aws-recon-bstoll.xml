@@ -13,6 +13,33 @@
 
   <row>
     <panel>
+      <title>Console logins without MFA</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail eventName=ConsoleLogin additionalEventData.MFAUsed=No userIdentity.type=IAMUser | stats count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Distinct S3 buckets touched</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=aws:cloudtrail userIdentity.userName=bstoll (eventName=GetBucket* OR eventName=ListBucket*) | stats dc(requestParameters.bucketName)</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
       <title>bstoll CloudTrail activity over time</title>
       <chart>
         <search>

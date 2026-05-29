@@ -9,7 +9,8 @@ Copy `froth_bots_hunts/` to `$SPLUNK_HOME/etc/apps/` and restart Splunk, or uplo
 ## Contents
 
 - 7 scheduled detections (`default/savedsearches.conf`), each ATT&CK-annotated.
-- 5 dashboards (`default/data/ui/views/`):
+- 6 dashboards (`default/data/ui/views/`):
+- `overview`
 - `aws-recon-bstoll`
 - `bstoll-l-endpoint`
 - `bstoll-coinhive-cryptojacking`

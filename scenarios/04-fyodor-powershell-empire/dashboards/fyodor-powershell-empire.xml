@@ -13,6 +13,23 @@
 
   <row>
     <panel>
+      <title>Encoded in-memory PowerShell events</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image=*powershell.exe (CommandLine=*FromBase64String* OR CommandLine=*-enc*) | stats count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
       <title>Encoded PowerShell (FromBase64String / -enc) by host</title>
       <chart>
         <search>
