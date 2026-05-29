@@ -1,6 +1,6 @@
 services:
   splunk:
-    image: splunk/splunk:latest
+    image: splunk/splunk:9.4.11
     container_name: splunk-bots
     environment:
       SPLUNK_START_ARGS: --accept-license

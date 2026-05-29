@@ -19,7 +19,7 @@ The DNS told the story immediately. On 2018-08-20, `BSTOLL-L` (`192.168.247.131`
 
 The five `ws*.coinhive.com` resolutions are the signal that matters. A single hit on the apex domain could be an analyst reading about Coinhive. Five distinct mining-node lookups in one window is an active session: the miner rotating across pool nodes to keep hashing. The resolved addresses sit in OVH space (`37.187.0.0/16`, `217.182.164.14`), which is where Coinhive ran its websocket infrastructure.
 
-This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-controlled JavaScript. That is the same surface that makes the leading AWS-credential-theft theory (console session-cookie theft) plausible: a browser already running untrusted code is a browser that can have its cookies and local storage read. The cryptojacking is not proof of the AWS theft, but it puts a compromised browser on the exact host the stolen `bstoll` keys trace back to.
+This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-controlled JavaScript. That is the same surface that makes the leading AWS-credential-theft theory (console session-cookie theft) plausible: a browser already running untrusted code is a browser that can have its cookies and local storage read. The cryptojacking does not prove the AWS theft. It does put a compromised browser on the exact host the stolen `bstoll` keys trace back to.
 
 ## Hunts
 
@@ -41,4 +41,4 @@ This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-co
 
 ## What I would have detected
 
-A DNS-side rule for `query=*coinhive.com OR query=*.minexmr.com OR query=*.nanopool.org` (a small known-mining-pool list) would have fired on the first `ws*` resolution, with near-zero false positives in a brewery's traffic. Cryptojacking is loud in DNS precisely because the miner cannot start without resolving its pool. That is the cheapest detection Frothly was missing on the endpoint side, and it sits on the same host the AWS compromise traces to.
+A DNS-side rule for `query=*coinhive.com OR query=*.minexmr.com OR query=*.nanopool.org` (a small known-mining-pool list) would have fired on the first `ws*` resolution, with near-zero false positives in a brewery's traffic. Cryptojacking is loud in DNS because the miner cannot start without resolving its pool. That rule would have flagged the miner on its first beacon, on the same host the AWS compromise traces back to.

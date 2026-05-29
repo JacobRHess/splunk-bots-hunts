@@ -91,25 +91,37 @@ def load_scenarios() -> list[Scenario]:  # pragma: no cover
     if not SCENARIOS.exists():
         return scenarios
     for path in sorted(SCENARIOS.iterdir()):
-        if not path.is_dir() or not re.match(r"\d", path.name):
+        if not path.is_dir() or not re.match(r"\d+-", path.name):
             continue
-        readme = (path / "README.md").read_text(encoding="utf-8")
-        answers = yaml.safe_load((path / "answers.yaml").read_text()) or {}
-        attack = yaml.safe_load((path / "attack.yaml").read_text()) or {}
+        readme_file = path / "README.md"
+        answers_file = path / "answers.yaml"
+        if not readme_file.exists() or not answers_file.exists():
+            continue
+        readme = readme_file.read_text(encoding="utf-8")
+        answers = yaml.safe_load(answers_file.read_text()) or {}
+        attack_file = path / "attack.yaml"
+        attack = yaml.safe_load(attack_file.read_text()) if attack_file.exists() else {}
         hunts: list[Hunt] = []
-        for entry in answers.get("hunts", []):
-            spl_path = path / "hunts" / entry["file"]
+        for entry in (answers or {}).get("hunts", []):
+            name = entry.get("file")
+            if not name:
+                continue
+            spl_path = path / "hunts" / name
             spl = spl_path.read_text(encoding="utf-8").strip() if spl_path.exists() else ""
             hunts.append(
                 Hunt(
-                    file=entry["file"],
+                    file=name,
                     question=entry.get("question", ""),
                     expected=str(entry.get("expected", "")),
                     field=entry.get("field"),
                     spl=spl,
                 )
             )
-        techniques = [(t["id"], t.get("name", "")) for t in attack.get("techniques", [])]
+        techniques = [
+            (t["id"], t.get("name", ""))
+            for t in (attack or {}).get("techniques", [])
+            if t.get("id")
+        ]
         scenarios.append(
             Scenario(
                 slug=path.name,
@@ -131,16 +143,18 @@ def render(scenarios: list[Scenario]) -> str:
     techniques, coverage = build_matrix(scenarios)
     numbers = [s.number for s in scenarios]
 
-    matrix_head = "".join(f"<th>{_esc(n)}</th>" for n in numbers)
+    matrix_head = "".join(f'<th scope="col">{_esc(n)}</th>' for n in numbers)
     matrix_rows = []
+    hit_cell = (
+        '<td class="hit"><span aria-hidden="true">●</span>'
+        '<span class="sr">covered</span></td>'
+    )
+    miss_cell = '<td class="miss"><span class="sr">not covered</span></td>'
     for tid, name in techniques:
-        cells = "".join(
-            f'<td class="{"hit" if n in coverage[tid] else "miss"}">'
-            f'{"●" if n in coverage[tid] else ""}</td>'
-            for n in numbers
-        )
+        cells = "".join(hit_cell if n in coverage[tid] else miss_cell for n in numbers)
         matrix_rows.append(
-            f'<tr><th class="tech"><code>{_esc(tid)}</code> {_esc(name)}</th>{cells}</tr>'
+            f'<tr><th class="tech" scope="row"><code>{_esc(tid)}</code> '
+            f"{_esc(name)}</th>{cells}</tr>"
         )
 
     cards = []
@@ -149,9 +163,13 @@ def render(scenarios: list[Scenario]) -> str:
         hunt_blocks = []
         for i, h in enumerate(s.hunts, 1):
             field = f' <span class="field">→ {_esc(h.field)}</span>' if h.field else ""
+            toggle = (
+                "const h=this.parentNode;h.classList.toggle('open');"
+                "this.setAttribute('aria-expanded',h.classList.contains('open'))"
+            )
             hunt_blocks.append(
                 f'<div class="hunt">'
-                f'<button class="hq" onclick="this.parentNode.classList.toggle(\'open\')">'
+                f'<button class="hq" aria-expanded="false" onclick="{toggle}">'
                 f'<span class="num">{i}</span>{_esc(h.question)}'
                 f'<span class="ans">{_esc(h.expected)}</span></button>'
                 f'<div class="spl"><pre>{_esc(h.spl)}</pre>'
@@ -174,7 +192,7 @@ def render(scenarios: list[Scenario]) -> str:
         technique_count=len(techniques),
         matrix_head=matrix_head,
         matrix_rows="".join(matrix_rows),
-        cards="".join(cards),
+        cards="".join(cards) or '<p class="summary">No scenarios yet.</p>',
     )
 
 
@@ -191,7 +209,8 @@ _PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>splunk-bots-hunts</title>
+<meta name="description" content="Documented Splunk hunts over the Boss of the SOC v3 dataset.">
+<title>Splunk BOTS v3 threat hunts</title>
 <style>
 :root {{ --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#c9d1d9;
   --muted:#8b949e; --accent:#58a6ff; --hit:#3fb950; --ans:#d29922; }}
@@ -201,13 +220,16 @@ body {{ margin:0; background:var(--bg); color:var(--text);
 .wrap {{ max-width:980px; margin:0 auto; padding:32px 20px 80px; }}
 header h1 {{ margin:0 0 4px; font-size:28px; }}
 header p {{ margin:0; color:var(--muted); }}
-.stats {{ display:flex; gap:24px; margin:24px 0 8px; }}
+.stats {{ display:flex; flex-wrap:wrap; gap:24px; margin:24px 0 8px; }}
 .stat {{ background:var(--panel); border:1px solid var(--line); border-radius:8px;
   padding:12px 18px; }}
 .stat b {{ display:block; font-size:24px; color:var(--accent); }}
 .stat span {{ color:var(--muted); font-size:13px; }}
+.sr {{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0; }}
 h2 {{ margin:40px 0 12px; font-size:18px; border-bottom:1px solid var(--line);
   padding-bottom:6px; }}
+.matrix-wrap {{ overflow-x:auto; }}
 table.matrix {{ border-collapse:collapse; width:100%; font-size:13px; }}
 table.matrix th, table.matrix td {{ border:1px solid var(--line); padding:6px 8px;
   text-align:center; }}
@@ -228,13 +250,15 @@ table.matrix code {{ color:var(--accent); }}
 .hq {{ width:100%; text-align:left; background:none; border:0; color:var(--text);
   padding:10px 0; cursor:pointer; font-size:14px; display:flex; align-items:center;
   gap:10px; }}
+.hq:focus-visible {{ outline:2px solid var(--accent); outline-offset:2px; }}
 .hq .num {{ color:var(--muted); }}
 .hq .ans {{ margin-left:auto; color:var(--ans); font-family:ui-monospace,monospace;
   font-size:13px; }}
-.spl {{ max-height:0; overflow:hidden; transition:max-height .2s ease; }}
-.hunt.open .spl {{ max-height:400px; }}
+.spl {{ max-height:0; overflow:hidden; transition:max-height .25s ease; }}
+.hunt.open .spl {{ max-height:1200px; }}
 .spl pre {{ background:#0d1117; border:1px solid var(--line); border-radius:6px;
-  padding:12px; overflow:auto; font-size:13px; color:#e6edf3; }}
+  padding:12px; overflow:auto; font-size:13px; color:#e6edf3;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }}
 .meta {{ color:var(--muted); font-size:12px; margin:0 0 12px; }}
 .field {{ color:var(--accent); }}
 footer {{ margin-top:48px; color:var(--muted); font-size:13px;
@@ -243,9 +267,9 @@ a {{ color:var(--accent); }}
 </style>
 </head>
 <body>
-<div class="wrap">
+<main class="wrap">
 <header>
-<h1>splunk-bots-hunts</h1>
+<h1>Splunk BOTS v3 threat hunts</h1>
 <p>Threat hunting walkthroughs for Splunk's Boss of the SOC v3 dataset.</p>
 </header>
 <div class="stats">
@@ -254,15 +278,17 @@ a {{ color:var(--accent); }}
 <div class="stat"><b>{technique_count}</b><span>ATT&amp;CK techniques</span></div>
 </div>
 <h2>ATT&amp;CK coverage</h2>
+<div class="matrix-wrap">
 <table class="matrix">
-<thead><tr><th class="tech">Technique</th>{matrix_head}</tr></thead>
+<thead><tr><th class="tech" scope="col">Technique</th>{matrix_head}</tr></thead>
 <tbody>{matrix_rows}</tbody>
 </table>
+</div>
 <h2>Scenarios</h2>
 {cards}
 <footer>Generated from the scenario sources by
 <code>harness/build_report.py</code>. Click a hunt to see its SPL.</footer>
-</div>
+</main>
 </body>
 </html>
 """

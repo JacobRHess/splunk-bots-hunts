@@ -1,0 +1,18 @@
+# Normalize line endings: commit LF, check out LF everywhere. Keeps the
+# generated docs/index.html byte-stable and silences core.autocrlf churn.
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.spl   text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.md    text eol=lf
+*.jsonl text eol=lf
+*.html  text eol=lf
+*.xml   text eol=lf
+*.toml  text eol=lf
+*.lock  text eol=lf
+
+*.png    binary
+*.tgz    binary
+*.tar.gz binary
