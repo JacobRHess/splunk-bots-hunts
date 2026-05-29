@@ -23,20 +23,6 @@
         <option name="charting.chart">bar</option>
       </chart>
     </panel>
-    <panel>
-      <title>Sign-in origin (choropleth)</title>
-      <map>
-        <search>
-          <query>index=* sourcetype=ms:aad:signin loginStatus=Success | eval country=case(location.country=="US","United States",location.country=="CA","Canada",location.country=="HK","Hong Kong S.A.R.",location.country=="GB","United Kingdom",location.country=="AU","Australia",true(),location.country) | stats count by country | geom geo_countries featureIdField=country</query>
-          <earliest>$earliest_tok.earliest$</earliest>
-          <latest>$earliest_tok.latest$</latest>
-        </search>
-        <option name="mapping.type">choropleth</option>
-        <option name="mapping.choroplethLayer.colorBins">5</option>
-        <option name="mapping.map.center">(20,60)</option>
-        <option name="mapping.map.zoom">2</option>
-      </map>
-    </panel>
   </row>
 
   <row>
