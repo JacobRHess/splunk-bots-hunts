@@ -10,10 +10,9 @@ I scoped this scenario to FYODOR-L's Sysmon process telemetry (`EventCode=1`, pr
 
 ## How I worked it
 
-1. Ranked Sysmon `EventCode=1` by `Computer`. `FYODOR-L` dominates, so I pulled its PowerShell process tree apart.
-2. Filtered command lines for `FromBase64String`. The hits are all on `FYODOR-L`, all hidden-window in-memory decoders. That is the implant executing.
-3. Extracted the registry path the decoder reads from: `HKLM:\Software\Microsoft\Network`, value `debug`. The payload lives in the registry, which is why nothing shows up as a dropped file.
-4. Split the executing identities. The SYSTEM copy is parented by `svchost.exe ... -s Schedule`, which names the persistence: a scheduled task under the `Schedule` service. The other copy runs as `FyodorMalteskesko`, the hands-on user session.
+1. Filtered Sysmon `EventCode=1` (process create) command lines for `FromBase64String`. Every hit is on `FYODOR-L`, all hidden-window in-memory decoders. That is the implant executing.
+2. Extracted the registry path the decoder reads from: `HKLM:\Software\Microsoft\Network`, value `debug`. The payload lives in the registry, which is why nothing shows up as a dropped file.
+3. Split the executing identities. The SYSTEM copy is parented by `svchost.exe ... -s Schedule`, which names the persistence: a scheduled task under the `Schedule` service. The other copy runs as `FyodorMalteskesko`, the hands-on user session.
 
 ## Reading the results
 

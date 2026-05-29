@@ -29,6 +29,7 @@ def _det(**kw: object) -> Detection:
         earliest="-24h",
         latest="now",
         severity=4,
+        risk=65,
         attack=["T1059.001"],
     )
     base.update(kw)
@@ -53,6 +54,8 @@ def test_render_savedsearches_stanza() -> None:
     assert 'action.correlationsearch.annotations = {"mitre_attack":["T1059.001"]}' in out
     assert "action.correlationsearch.enabled = 1" in out
     assert "action.correlationsearch.label = BOTS - Test detection" in out
+    assert "action.risk = 1" in out
+    assert "action.risk.param._risk_score = 65" in out
     assert "cron_schedule = */15 * * * *" in out
     assert "# source: 01-x" in out
 
@@ -91,7 +94,9 @@ def test_committed_savedsearches_is_valid_ini() -> None:
 
 
 def test_committed_views_match_scenario_dashboards() -> None:
-    for name, xml in load_views(SCENARIOS):
+    views = load_views(SCENARIOS)
+    assert views, "no scenario dashboards found"
+    for name, xml in views:
         committed = (APP_DIR / "default" / "data" / "ui" / "views" / f"{name}.xml").read_text(
             encoding="utf-8"
         )

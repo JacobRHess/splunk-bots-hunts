@@ -11,13 +11,13 @@ The DNS told the story immediately. On 2018-08-20, `BSTOLL-L` (`192.168.247.131`
 ## How I worked it
 
 1. Pivoted off scenario 02's conclusion (browser or local process) into network telemetry. `stream:dns` is the cheapest place to catch an in-browser miner, because the miner has to resolve its pool nodes before it can hash.
-2. Searched `stream:dns` for any `coinhive.com` resolution and grouped by `src_ip`. One internal workstation stood out: `192.168.247.131`. The other source, `192.168.247.2`, is the internal resolver recursing the same lookups, not a second victim.
+2. Searched `stream:dns` for any `coinhive.com` resolution and grouped by `src_ip`. One internal workstation accounts for all of it: `192.168.247.131`, querying the resolver at `192.168.247.2`.
 3. Counted the distinct coinhive FQDNs that workstation resolved. Six in total: the apex `coinhive.com` plus five `ws*` mining nodes.
 4. Pulled the `src_mac` to nail the asset identity independent of DHCP lease churn: `00:0C:29:B8:44:5E`. That MAC is `BSTOLL-L`, the same laptop scenario 01 and 02 were built around.
 
 ## Reading the results
 
-The five `ws*.coinhive.com` resolutions are the signal that matters. A single hit on the apex domain could be an analyst reading about Coinhive. Five distinct mining-node lookups in one window is an active session: the miner rotating across pool nodes to keep hashing. The resolved addresses sit in OVH space (`37.187.0.0/16`, `217.182.164.14`), which is where Coinhive ran its websocket infrastructure.
+The five `ws*.coinhive.com` resolutions are what separate an active miner from a one-off lookup. A single hit on the apex domain could be an analyst reading about Coinhive. Five distinct mining-node lookups in one window is an active session: the miner rotating across pool nodes to keep hashing. The resolved addresses sit in OVH space (`37.187.0.0/16`, `217.182.164.14`), which is where Coinhive ran its websocket infrastructure.
 
 This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-controlled JavaScript. That is the same surface that makes the leading AWS-credential-theft theory (console session-cookie theft) plausible: a browser already running untrusted code is a browser that can have its cookies and local storage read. The cryptojacking does not prove the AWS theft. It does put a compromised browser on the exact host the stolen `bstoll` keys trace back to.
 
@@ -27,8 +27,8 @@ This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-co
 |---|---|---|---|
 | 1 | `hunts/01-coinhive-internal-host.spl` | Which internal host resolved coinhive.com mining domains? | `192.168.247.131` |
 | 2 | `hunts/02-coinhive-fqdns.spl` | How many distinct `coinhive.com` FQDNs did the host resolve? | `6` |
-| 3 | `hunts/03-mining-endpoints.spl` | How many distinct mining websocket endpoints (`ws*.coinhive.com`) were resolved? | `5` |
-| 4 | `hunts/04-infected-host-mac.spl` | What is the MAC of the host running the in-browser miner? | `00:0C:29:B8:44:5E` |
+| 3 | `hunts/03-mining-endpoints.spl` | How many distinct coinhive mining websocket endpoints (`ws*.coinhive.com`) were resolved? | `5` |
+| 4 | `hunts/04-infected-host-mac.spl` | What is the MAC address of the host running the in-browser miner? | `00:0C:29:B8:44:5E` |
 
 ## ATT&CK mapping
 
@@ -41,4 +41,4 @@ This closes the scenario 02 loop. `BSTOLL-L`'s browser was executing attacker-co
 
 ## What I would have detected
 
-A DNS-side rule for `query=*coinhive.com OR query=*.minexmr.com OR query=*.nanopool.org` (a small known-mining-pool list) would have fired on the first `ws*` resolution, with near-zero false positives in a brewery's traffic. Cryptojacking is loud in DNS because the miner cannot start without resolving its pool. That rule would have flagged the miner on its first beacon, on the same host the AWS compromise traces back to.
+Cryptojacking is loud in DNS because the miner cannot start without resolving its pool. A DNS-side rule against a small known-mining-pool list (`query=*coinhive.com OR query=*.minexmr.com OR query=*.nanopool.org`) carries near-zero false positives in a brewery's traffic and catches the miner on its first pool lookup, on the same host the AWS compromise traces back to.

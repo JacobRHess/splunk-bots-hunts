@@ -17,7 +17,7 @@ Alongside the successful foreign logins there are ten failed sign-ins spread acr
 
 ## Reading the results
 
-The geo-IP outlier is the cheapest signal here. A brewery's workforce does not log in from a Hong Kong data-center IP, so country-plus-hosting-ASN alone is enough to surface this without tuning. The reused `fyodor` account is the part that matters: the same credentials show up on a compromised endpoint and in foreign cloud sign-ins, so this is one actor operating across both surfaces, not two unrelated oddities.
+The geo-IP outlier is easy to alert on. A brewery's workforce does not log in from a Hong Kong data-center IP, so country-plus-hosting-ASN alone surfaces this without tuning. What ties it to the rest of the intrusion is the reused `fyodor` account: the same credentials show up on a compromised endpoint and in foreign cloud sign-ins, so this is one actor operating across both surfaces.
 
 The failures change the read from "one stolen credential" to "the attacker is working a list." Five accounts tested, two of them landing successful sessions, points at a spray or a credential dump rather than a single phish.
 
@@ -25,9 +25,9 @@ The failures change the read from "one stolen credential" to "the attacker is wo
 
 | # | File | Question | Answer |
 |---|---|---|---|
-| 1 | `hunts/01-foreign-signin-country.spl` | Which country outside North America did successful sign-ins come from? | `HK` |
+| 1 | `hunts/01-foreign-signin-country.spl` | Which country outside North America did successful Azure AD sign-ins come from? | `HK` |
 | 2 | `hunts/02-foreign-signin-ip.spl` | What source IP did the foreign sign-ins originate from? | `104.207.83.63` |
-| 3 | `hunts/03-foreign-signin-accounts.spl` | How many distinct accounts signed in successfully from Hong Kong? | `2` |
+| 3 | `hunts/03-foreign-signin-accounts.spl` | How many distinct accounts had successful sign-ins from Hong Kong? | `2` |
 | 4 | `hunts/04-failed-signins.spl` | How many failed Azure AD sign-ins are in the logs? | `10` |
 
 ## ATT&CK mapping
@@ -39,4 +39,4 @@ The failures change the read from "one stolen credential" to "the attacker is wo
 
 ## What I would have detected
 
-A rule for `ms:aad:signin loginStatus=Success` where `location.country` is outside an allow-list of expected countries would have fired on the first Hong Kong sign-in. Pairing it with a second rule that watches for failed sign-ins fanning across multiple accounts from one IP catches the spray that preceded the successful logins. Both ship with this scenario as saved searches in the Splunk app.
+An allow-list rule on `ms:aad:signin loginStatus=Success` (country not in the set of expected countries) surfaces every Hong Kong sign-in with no tuning. A second rule for failed sign-ins fanning across multiple accounts from one IP catches the spray that preceded the successful logins. Both ship with this scenario as saved searches in the Splunk app.

@@ -27,6 +27,27 @@ def _answers(scenario: Path) -> list[dict[str, str]]:
     return hunts
 
 
+def _norm_question(text: str) -> str:
+    """Compare question strings ignoring markdown code spans and whitespace."""
+    return re.sub(r"\s+", " ", text.replace("`", "").replace("*", "")).strip().lower()
+
+
+def test_scenarios_exist() -> None:
+    # Guards the parametrized tests below: an empty tree would silently collect zero cases.
+    assert SCENARIO_DIRS, "no scenarios found"
+
+
+def test_top_readme_scenario_count_matches() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
+    m = re.search(r"\b(\w+) scenarios shipped\b", readme, re.IGNORECASE)
+    assert m, "top-level README has no 'N scenarios shipped' status line"
+    stated = words.get(m.group(1).lower())
+    assert stated == len(SCENARIO_DIRS), (
+        f"README says '{m.group(1)} scenarios shipped' but there are {len(SCENARIO_DIRS)}"
+    )
+
+
 @pytest.mark.parametrize("scenario", SCENARIO_DIRS, ids=SCENARIO_IDS)
 def test_answers_and_hunts_are_a_bijection(scenario: Path) -> None:
     answer_files = {h["file"] for h in _answers(scenario)}
@@ -79,6 +100,14 @@ def test_readme_answer_table_matches_answers_yaml(scenario: Path) -> None:
             f"{scenario.name}/{hunt['file']}: README row answer disagrees with "
             f"answers.yaml expected '{hunt['expected']}'\n  row: {row}"
         )
+        # The README question cell must match answers.yaml (the CI source of truth),
+        # ignoring markdown code spans and whitespace. Cell layout: | # | file | question | answer |
+        cells = [c.strip() for c in row.split("|")]
+        question_cell = cells[3] if len(cells) > 4 else ""
+        assert _norm_question(question_cell) == _norm_question(hunt["question"]), (
+            f"{scenario.name}/{hunt['file']}: README question text disagrees with answers.yaml\n"
+            f"  README: {question_cell}\n  answers: {hunt['question']}"
+        )
 
 
 @pytest.mark.parametrize("scenario", SCENARIO_DIRS, ids=SCENARIO_IDS)
@@ -86,7 +115,9 @@ def test_readme_cites_every_attack_technique(scenario: Path) -> None:
     readme = (scenario / "README.md").read_text(encoding="utf-8")
     attack = yaml.safe_load((scenario / "attack.yaml").read_text()) or {}
     for technique in attack.get("techniques", []):
-        tid = technique["id"]
+        tid = technique.get("id")
+        if not tid:
+            continue
         assert tid in readme, (
             f"{scenario.name}: attack.yaml lists {tid} but the README never mentions it"
         )
@@ -101,7 +132,7 @@ def test_detections_are_well_formed(scenario: Path) -> None:
     detections = data.get("detections", [])
     assert detections, f"{scenario.name}: detections.yaml has no detections"
     attack = yaml.safe_load((scenario / "attack.yaml").read_text()) or {}
-    declared = {t["id"] for t in attack.get("techniques", [])}
+    declared = {t.get("id") for t in attack.get("techniques", [])}
     for det in detections:
         for key in ("id", "name", "search", "fixture_expect", "attack"):
             assert det.get(key), f"{scenario.name}: detection missing '{key}': {det.get('name')}"

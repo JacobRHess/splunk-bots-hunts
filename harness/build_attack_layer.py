@@ -49,7 +49,7 @@ def build_layer(coverage: dict[str, list[str]]) -> dict[str, object]:
     max_score = max((len(s) for s in coverage.values()), default=1)
     return {
         "name": "splunk-bots-hunts coverage",
-        "versions": {"attack": "14", "navigator": "4.9.1", "layer": "4.5"},
+        "versions": {"attack": "16", "navigator": "4.9.1", "layer": "4.5"},
         "domain": "enterprise-attack",
         "description": "Techniques exercised by the splunk-bots-hunts scenarios over BOTS v3.",
         "techniques": techniques,

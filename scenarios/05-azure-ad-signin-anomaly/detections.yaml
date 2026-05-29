@@ -3,8 +3,8 @@ detections:
     name: Azure AD sign-in from outside North America
     description: >
       A successful Azure AD sign-in whose geo-IP country is not US or CA. For a
-      Colorado and California brewery this is high-signal. Fired on fyodor and
-      bgist signing in from Hong Kong via a hosting IP.
+      Colorado and California brewery this is high-signal. Surfaces the fyodor
+      and bgist sign-ins from a Hong Kong hosting IP, the dominant anomaly here.
     search: |
       sourcetype=ms:aad:signin loginStatus=Success
       NOT (location.country=US OR location.country=CA)
