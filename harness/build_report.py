@@ -12,7 +12,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+from harness import iter_scenarios, load_yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SCENARIOS = ROOT / "scenarios"
@@ -89,19 +89,14 @@ def build_matrix(scenarios: list[Scenario]) -> tuple[list[tuple[str, str]], dict
 
 def load_scenarios() -> list[Scenario]:  # pragma: no cover
     scenarios: list[Scenario] = []
-    if not SCENARIOS.exists():
-        return scenarios
-    for path in sorted(SCENARIOS.iterdir()):
-        if not path.is_dir() or not re.match(r"\d+-", path.name):
-            continue
+    for path in iter_scenarios(SCENARIOS):
         readme_file = path / "README.md"
         answers_file = path / "answers.yaml"
         if not readme_file.exists() or not answers_file.exists():
             continue
         readme = readme_file.read_text(encoding="utf-8")
-        answers = yaml.safe_load(answers_file.read_text()) or {}
-        attack_file = path / "attack.yaml"
-        attack = yaml.safe_load(attack_file.read_text()) if attack_file.exists() else {}
+        answers = load_yaml(answers_file)
+        attack = load_yaml(path / "attack.yaml")
         hunts: list[Hunt] = []
         for entry in (answers or {}).get("hunts", []):
             name = entry.get("file")
@@ -123,8 +118,7 @@ def load_scenarios() -> list[Scenario]:  # pragma: no cover
             for t in (attack or {}).get("techniques", [])
             if t.get("id")
         ]
-        det_file = path / "detections.yaml"
-        det_data = yaml.safe_load(det_file.read_text()) if det_file.exists() else {}
+        det_data = load_yaml(path / "detections.yaml")
         detections = [d["name"] for d in (det_data or {}).get("detections", []) if d.get("name")]
         scenarios.append(
             Scenario(

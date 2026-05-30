@@ -16,9 +16,9 @@ Scenario 05 flagged two Frothly accounts signing in to Azure AD from a Hong Kong
 
 ## Reading the results
 
-The anonymous-link operations are the high-signal pair. A Colorado and California brewery has little reason to publish internal OneDrive files to anonymous URLs, and a shared `.lnk` named after photos is a lure rather than a document. The fact that the link was created from the same Hong Kong IP that scenario 05 already flagged removes any doubt about who created it: this is the attacker operating Frothly's own OneDrive to stage a payload.
+The anonymous-link operations are where I would start. A small brewery has little reason to publish internal OneDrive files to anonymous URLs, and a shared `.lnk` named after photos is a lure rather than a document. The link was created from the same Hong Kong IP that scenario 05 already flagged, which settles who created it: the attacker is operating Frothly's own OneDrive to stage a payload.
 
-The `Set-Mailbox` runs change the read from "stolen credentials used to sign in" to "stolen credentials used to administer the tenant." Fyodor is not an admin, so a Frothly mailbox user reconfiguring other mailboxes is account takeover in progress. Disabling `bgist` while `bgist` is the account that just shared the lure looks like the attacker cleaning up behind one identity using another.
+The `Set-Mailbox` runs move this past sign-in and into administration. Fyodor is not an admin, so a Frothly mailbox user reconfiguring colleagues' mailboxes is account takeover, not a stolen login being reused. Disabling `bgist` while `bgist` is the account that just shared the lure looks like the attacker cleaning up behind one identity using another.
 
 ## Hunts
 
@@ -41,4 +41,4 @@ The `Set-Mailbox` runs change the read from "stolen credentials used to sign in"
 
 ## What I would have detected
 
-Two saved searches ship with this scenario. The first fires when any Frothly user creates an anonymous sharing link, which surfaces the `bgist` link and the file behind it with no tuning, because anonymous external links are rare and worth a look every time. The second fires when a regular mailbox user, not an admin or a Microsoft service account, runs `Set-Mailbox`, which catches `fyodor` reconfiguring other people's mailboxes. Both ship as correlation searches in the Splunk app.
+Two saved searches ship with this scenario. The first fires when any Frothly user creates an anonymous sharing link, which surfaces the `bgist` link and the file behind it, because anonymous external links are rare enough to be worth a look every time. The second fires when a regular mailbox user, not an admin or a Microsoft service account, runs `Set-Mailbox`, which catches `fyodor` reconfiguring other people's mailboxes. Both ship as correlation searches in the Splunk app.

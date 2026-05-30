@@ -13,7 +13,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+from harness import iter_scenarios, load_yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SCENARIOS = ROOT / "scenarios"
@@ -53,13 +53,8 @@ def _severity(risk: int) -> int:
 
 def load_detections(scenarios_dir: Path) -> list[Detection]:  # pragma: no cover
     detections: list[Detection] = []
-    if not scenarios_dir.exists():
-        return detections
-    for path in sorted(scenarios_dir.iterdir()):
-        det_file = path / "detections.yaml"
-        if not path.is_dir() or not det_file.exists():
-            continue
-        data = yaml.safe_load(det_file.read_text()) or {}
+    for path in iter_scenarios(scenarios_dir):
+        data = load_yaml(path / "detections.yaml")
         for det in data.get("detections", []):
             detections.append(
                 Detection(
@@ -80,9 +75,7 @@ def load_detections(scenarios_dir: Path) -> list[Detection]:  # pragma: no cover
 
 def load_views(scenarios_dir: Path) -> list[tuple[str, str]]:  # pragma: no cover
     views: list[tuple[str, str]] = []
-    if not scenarios_dir.exists():
-        return views
-    for path in sorted(scenarios_dir.iterdir()):
+    for path in iter_scenarios(scenarios_dir):
         for dash in sorted((path / "dashboards").glob("*.xml")):
             views.append((dash.stem, dash.read_text(encoding="utf-8")))
     return views

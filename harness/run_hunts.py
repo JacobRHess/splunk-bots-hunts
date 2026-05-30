@@ -10,7 +10,8 @@ from typing import Any
 
 import requests
 import urllib3
-import yaml
+
+from harness import iter_scenarios, load_yaml
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -20,6 +21,10 @@ SPLUNK_PASSWORD = os.environ.get("SPLUNK_PASSWORD", "changeme")
 SCENARIOS = Path(__file__).resolve().parent.parent / "scenarios"
 SID_RE = re.compile(r"<sid>(.+?)</sid>")
 SEARCH_TIMEOUT_SECONDS = 120
+# Errors a single search can raise that should fail that one hunt/detection
+# without aborting the whole run. Shared with run_detections so both runners
+# treat search failures identically.
+SEARCH_ERRORS = (requests.RequestException, RuntimeError, TimeoutError, ValueError)
 
 
 def run_search(
@@ -106,14 +111,8 @@ def main() -> int:  # pragma: no cover
 
     failures: list[str] = []
     passes = 0
-    for scenario in sorted(SCENARIOS.iterdir()):
-        if not scenario.is_dir():
-            continue
-        answers_file = scenario / "answers.yaml"
-        if not answers_file.exists():
-            continue
-        with answers_file.open() as f:
-            answers = yaml.safe_load(f) or {}
+    for scenario in iter_scenarios(SCENARIOS):
+        answers = load_yaml(scenario / "answers.yaml")
         for hunt in answers.get("hunts", []):
             spl_path = scenario / "hunts" / hunt["file"]
             if not spl_path.exists():
@@ -122,7 +121,7 @@ def main() -> int:  # pragma: no cover
             spl = spl_path.read_text()
             try:
                 results = run_search(spl)
-            except (requests.RequestException, RuntimeError, TimeoutError, ValueError) as exc:
+            except SEARCH_ERRORS as exc:
                 failures.append(f"{scenario.name}/{hunt['file']}: search error: {exc}")
                 continue
             actual = _extract_answer(results, hunt.get("field"))
