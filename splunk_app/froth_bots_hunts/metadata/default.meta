@@ -7,3 +7,18 @@ export = system
 
 [savedsearches]
 export = system
+
+[macros]
+export = system
+
+[eventtypes]
+export = system
+
+[tags]
+export = system
+
+[transforms]
+export = system
+
+[lookups]
+export = system

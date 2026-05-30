@@ -1,0 +1,4 @@
+host,owner,criticality,zone
+BSTOLL-L,bstoll@froth.ly,medium,workstation
+FYODOR-L,fyodor@froth.ly,medium,workstation
+BGIST-L,bgist@froth.ly,medium,workstation

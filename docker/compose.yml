@@ -1,6 +1,7 @@
 services:
   splunk:
-    image: splunk/splunk:9.4.11
+    # Pinned by digest as well as tag so the image can't be swapped under the tag.
+    image: splunk/splunk:9.4.11@sha256:6a79a2772def4a024f4562b9223720517f5d906b4ea25d3a2b2f4cac6c10b969
     container_name: splunk-bots
     environment:
       SPLUNK_START_ARGS: --accept-license

@@ -1,0 +1,23 @@
+# gitleaks configuration for splunk-bots-hunts.
+# Extends the default ruleset; the allowlist below documents the only matches in
+# this repo, all of which are public sample data or CI-only test values, not
+# real secrets.
+title = "splunk-bots-hunts"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public BOTS v3 sample data and CI-only test credentials."
+# Scenario fixtures are slices of the public Splunk Boss of the SOC v3 dataset.
+# They contain synthetic AWS STS access keys (ASIA...) and other event values
+# from the published CTF data, which gitleaks flags as access keys. None are
+# live credentials.
+paths = [
+  '''scenarios/.*/fixtures/.*\.jsonl''',
+]
+# Throwaway values for the ephemeral Splunk container that CI boots and destroys.
+regexes = [
+  '''Chang3me!''',
+  '''00000000-0000-0000-0000-000000000000''',
+]

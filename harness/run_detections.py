@@ -11,9 +11,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import yaml
-
-from harness.run_hunts import run_search
+from harness import iter_scenarios, load_yaml
+from harness.run_hunts import SEARCH_ERRORS, run_search
 
 SCENARIOS = Path(__file__).resolve().parent.parent / "scenarios"
 # The fixture slice carries 2018 timestamps (or none); query the full window.
@@ -35,17 +34,14 @@ def main() -> int:  # pragma: no cover
 
     failures: list[str] = []
     passes = 0
-    for scenario in sorted(SCENARIOS.iterdir()):
-        det_file = scenario / "detections.yaml"
-        if not det_file.exists():
-            continue
-        data = yaml.safe_load(det_file.read_text()) or {}
+    for scenario in iter_scenarios(SCENARIOS):
+        data = load_yaml(scenario / "detections.yaml")
         for det in data.get("detections", []):
             name = det.get("id") or det.get("name", "?")
             expect = det.get("fixture_expect", "fires")
             try:
                 rows = run_search(det["search"], earliest=FIXTURE_EARLIEST, latest="now")
-            except Exception as exc:  # report any search error as a failure, keep going
+            except SEARCH_ERRORS as exc:
                 failures.append(f"{scenario.name}/{name}: search error: {exc}")
                 continue
             if _expectation_met(len(rows), expect):

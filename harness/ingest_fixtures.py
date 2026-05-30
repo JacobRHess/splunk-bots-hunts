@@ -11,6 +11,8 @@ from typing import Any
 import requests
 import urllib3
 
+from harness import iter_scenarios
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 HEC_URL = os.environ.get("SPLUNK_HEC_URL", "https://localhost:8088/services/collector")
@@ -74,9 +76,7 @@ def main() -> int:  # pragma: no cover
     session.verify = False
 
     count = 0
-    for scenario in sorted(SCENARIOS.iterdir()):
-        if not scenario.is_dir():
-            continue
+    for scenario in iter_scenarios(SCENARIOS):
         fixtures_dir = scenario / "fixtures"
         if not fixtures_dir.exists():
             continue

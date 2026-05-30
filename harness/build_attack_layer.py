@@ -10,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-import yaml
+from harness import iter_scenarios, load_yaml
 
 SCENARIOS = Path(__file__).resolve().parent.parent / "scenarios"
 OUTPUT = Path(__file__).resolve().parent.parent / "docs" / "attack-navigator-layer.json"
@@ -20,13 +20,8 @@ GRADIENT = ["#dbeafe", "#58a6ff", "#1f6feb"]
 def collect_coverage(scenarios_dir: Path) -> dict[str, list[str]]:
     """Map ATT&CK technique id -> sorted list of scenario slugs that cover it."""
     coverage: dict[str, list[str]] = {}
-    if not scenarios_dir.exists():
-        return coverage
-    for path in sorted(scenarios_dir.iterdir()):
-        attack_file = path / "attack.yaml"
-        if not path.is_dir() or not attack_file.exists():
-            continue
-        data = yaml.safe_load(attack_file.read_text()) or {}
+    for path in iter_scenarios(scenarios_dir):
+        data = load_yaml(path / "attack.yaml")
         for technique in data.get("techniques", []):
             tid = technique.get("id")
             if tid:

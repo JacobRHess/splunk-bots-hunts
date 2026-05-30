@@ -29,10 +29,19 @@ def test_app_views_well_formed(xml_file: Path) -> None:
 
 
 def test_app_has_a_view_per_dashboard() -> None:
-    # one view per scenario dashboard, plus the generated overview
-    assert len(APP_VIEWS) == len(DASHBOARDS) + 1, "app views and scenario dashboards out of sync"
+    # one view per scenario dashboard, plus the generated overview and investigation boards
+    assert len(APP_VIEWS) == len(DASHBOARDS) + 2, "app views and scenario dashboards out of sync"
 
 
 def test_nav_well_formed() -> None:
     root = ET.parse(NAV).getroot()
     assert root.tag == "nav"
+
+
+def test_app_ships_cim_and_lookup_conf() -> None:
+    default = ROOT / "splunk_app" / "froth_bots_hunts" / "default"
+    for conf in ("macros.conf", "eventtypes.conf", "tags.conf", "transforms.conf"):
+        assert (default / conf).exists(), f"app is missing {conf}"
+    lookups = ROOT / "splunk_app" / "froth_bots_hunts" / "lookups"
+    assert (lookups / "identities.csv").exists()
+    assert (lookups / "assets.csv").exists()

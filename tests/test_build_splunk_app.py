@@ -2,21 +2,35 @@
 from __future__ import annotations
 
 import configparser
+import xml.etree.ElementTree as ET
 
 from harness import build_splunk_app
 from harness.build_splunk_app import (
     APP_DIR,
+    ASSET_FIELDS,
+    ASSETS,
+    IDENTITIES,
+    IDENTITY_FIELDS,
     SCENARIOS,
     Detection,
+    _cdata,
     _oneline,
+    _render_csv,
+    _search_link,
     _severity,
+    _xml_text,
     load_detections,
     load_views,
     render_app_conf,
+    render_eventtypes,
+    render_investigation,
+    render_macros,
     render_meta,
     render_nav,
     render_overview,
     render_savedsearches,
+    render_tags,
+    render_transforms,
 )
 
 
@@ -52,13 +66,28 @@ def test_render_savedsearches_stanza() -> None:
     assert "[BOTS - Test detection]" in out
     # search is collapsed to one line and scoped to the dataset index for deployment
     assert "search = index=botsv3 sourcetype=x foo=bar | stats count by host" in out
-    assert 'action.correlationsearch.annotations = {"mitre_attack":["T1059.001"]}' in out
+    assert (
+        'action.correlationsearch.annotations = '
+        '{"mitre_attack":["T1059.001"],"analytic_story":["01-x"]}'
+    ) in out
     assert "action.correlationsearch.enabled = 1" in out
     assert "action.correlationsearch.label = BOTS - Test detection" in out
     assert "action.risk = 1" in out
     assert "action.risk.param._risk_score = 65" in out
     assert "cron_schedule = */15 * * * *" in out
     assert "# source: 01-x" in out
+
+
+def test_render_savedsearches_notable_params() -> None:
+    out = render_savedsearches([_det()])
+    assert "action.notable.param.rule_title = BOTS - Test detection" in out
+    assert "action.notable.param.severity = high" in out  # severity 4 -> high
+    assert "action.notable.param.nes_fields = user,src,dest,host,UserId,ClientIP" in out
+    # the drilldown opens the same deployed (index-scoped) search
+    assert (
+        "action.notable.param.drilldown_search = "
+        "index=botsv3 sourcetype=x foo=bar | stats count by host"
+    ) in out
 
 
 def test_render_savedsearches_is_valid_ini() -> None:
@@ -78,7 +107,106 @@ def test_render_nav_marks_first_default() -> None:
 
 def test_render_app_conf_and_meta() -> None:
     assert "[launcher]" in render_app_conf()
-    assert "export = system" in render_meta()
+    meta = render_meta()
+    # every shipped knowledge object is exported so it is visible app-wide
+    for obj in ("macros", "eventtypes", "tags", "transforms", "lookups"):
+        assert f"[{obj}]\nexport = system" in meta
+
+
+def test_render_macros_includes_args_only_when_present() -> None:
+    out = render_macros()
+    parser = configparser.ConfigParser(strict=True)
+    parser.read_string(out)
+    assert parser["frothly_index"]["definition"] == "index=botsv3"
+    assert "args" not in parser["frothly_index"]
+    # rfc1918 takes an ip argument
+    assert parser["rfc1918(1)"]["args"] == "ip"
+    assert "cidrmatch" in parser["rfc1918(1)"]["definition"]
+
+
+def test_render_eventtypes_and_tags_align() -> None:
+    et = configparser.ConfigParser(strict=True)
+    et.read_string(render_eventtypes())
+    assert et["frothly_aad_signin"]["search"] == "sourcetype=ms:aad:signin"
+    tags = render_tags()
+    # the auth eventtypes carry the CIM authentication tag
+    assert "[eventtype=frothly_aad_signin]\nauthentication = enabled" in tags
+    assert "[eventtype=frothly_stream_dns]" in tags and "dns = enabled" in tags
+
+
+def test_render_transforms_defines_both_lookups() -> None:
+    out = render_transforms()
+    parser = configparser.ConfigParser(strict=True)
+    parser.read_string(out)
+    assert parser["frothly_identities"]["filename"] == "identities.csv"
+    assert parser["frothly_assets"]["filename"] == "assets.csv"
+
+
+def test_render_csv_header_and_rows() -> None:
+    csv = _render_csv(IDENTITY_FIELDS, IDENTITIES)
+    lines = csv.strip().splitlines()
+    assert lines[0] == "identity,role,team,home_country"
+    assert len(lines) == len(IDENTITIES) + 1
+    assert "fyodor@froth.ly,employee,engineering,US" in lines
+    # the service account is labelled so detections can exclude it
+    assert any(row.endswith("service,microsoft,") for row in lines)
+
+
+def test_assets_csv_covers_scenario_hosts() -> None:
+    csv = _render_csv(ASSET_FIELDS, ASSETS)
+    for host in ("BSTOLL-L", "FYODOR-L", "BGIST-L"):
+        assert f"{host}," in csv
+
+
+def test_search_link_is_xml_safe_and_encoded() -> None:
+    link = _search_link("index=botsv3 sourcetype=x foo=bar")
+    assert link.startswith("search?q=")
+    assert "&amp;earliest=-10y" in link  # & escaped for XML
+    assert " " not in link  # query is URL-encoded
+
+
+def test_render_overview_tiles_drill_down() -> None:
+    out = render_overview([_det()])
+    assert "<drilldown>" in out and "<link target=\"_blank\">search?q=" in out
+
+
+def test_xml_text_escapes_markup() -> None:
+    assert _xml_text("A & B <x>") == "A &amp; B &lt;x&gt;"
+
+
+def test_cdata_neutralises_terminator() -> None:
+    # a literal ]]> inside a search must round-trip through CDATA intact, not
+    # close the section early and corrupt the XML
+    spl = "search foo=1 ]]> bar"
+    root = ET.fromstring(f"<query>{_cdata(spl)}</query>")
+    assert root.text == spl
+
+
+def test_generated_dashboards_survive_hostile_detection_text() -> None:
+    # A detection name with XML markup and a search carrying a CDATA terminator
+    # must still produce well-formed dashboard XML, not a broken view.
+    hostile = _det(
+        name="A & B <script> rule",
+        description='quote " and & < here',
+        search='sourcetype=x note="end ]]> here" | stats count',
+    )
+    ET.fromstring(render_overview([hostile]))
+
+
+def test_render_csv_quotes_special_fields() -> None:
+    out = _render_csv(("a", "b"), [("has,comma", 'has"quote')])
+    rows = out.strip().splitlines()
+    assert rows == ["a,b", '"has,comma","has""quote"']
+
+
+def test_render_investigation_uses_macros_and_lookups() -> None:
+    out = render_investigation()
+    root = ET.fromstring(out)
+    assert root.tag == "form"
+    assert "Frothly intrusion investigation" in out
+    assert "`frothly_index`" in out  # uses the deploy-index macro
+    assert "lookup frothly_identities" in out and "lookup frothly_assets" in out
+    assert out.count("<drilldown>") >= 3  # every panel pivots to events
 
 
 # ---- drift guards over the committed splunk_app/ ----
@@ -105,12 +233,52 @@ def test_committed_views_match_scenario_dashboards() -> None:
 
 
 def test_committed_nav_up_to_date() -> None:
-    names = ["overview", *[n for n, _ in load_views(SCENARIOS)]]
+    names = ["overview", "investigation", *[n for n, _ in load_views(SCENARIOS)]]
     expected = render_nav(names)
     actual = (APP_DIR / "default" / "data" / "ui" / "nav" / "default.xml").read_text(
         encoding="utf-8"
     )
     assert actual.splitlines() == expected.splitlines()
+
+
+def _committed(*parts: str) -> str:
+    return (APP_DIR.joinpath(*parts)).read_text(encoding="utf-8")
+
+
+def test_committed_macros_up_to_date() -> None:
+    assert _committed("default", "macros.conf").splitlines() == render_macros().splitlines()
+
+
+def test_committed_eventtypes_up_to_date() -> None:
+    assert _committed("default", "eventtypes.conf").splitlines() == render_eventtypes().splitlines()
+
+
+def test_committed_tags_up_to_date() -> None:
+    assert _committed("default", "tags.conf").splitlines() == render_tags().splitlines()
+
+
+def test_committed_transforms_up_to_date() -> None:
+    assert _committed("default", "transforms.conf").splitlines() == render_transforms().splitlines()
+
+
+def test_committed_lookups_up_to_date() -> None:
+    assert _committed("lookups", "identities.csv").splitlines() == _render_csv(
+        IDENTITY_FIELDS, IDENTITIES
+    ).splitlines()
+    assert _committed("lookups", "assets.csv").splitlines() == _render_csv(
+        ASSET_FIELDS, ASSETS
+    ).splitlines()
+
+
+def test_committed_investigation_up_to_date() -> None:
+    actual = _committed("default", "data", "ui", "views", "investigation.xml")
+    assert actual.splitlines() == render_investigation().splitlines(), "investigation.xml is stale"
+    ET.fromstring(actual)  # and it parses
+
+
+def test_committed_confs_are_valid_ini() -> None:
+    for conf in ("macros.conf", "eventtypes.conf", "tags.conf", "transforms.conf"):
+        configparser.ConfigParser(strict=True).read_string(_committed("default", conf))
 
 
 def test_render_overview_is_a_kpi_per_detection() -> None:

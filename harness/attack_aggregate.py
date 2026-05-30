@@ -5,7 +5,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-import yaml
+from harness import iter_scenarios, load_yaml
 
 SCENARIOS = Path(__file__).resolve().parent.parent / "scenarios"
 OUTPUT = Path(__file__).resolve().parent.parent / "docs" / "attack-coverage.md"
@@ -15,21 +15,14 @@ def main() -> int:
     names: dict[str, str] = {}
     scenarios: dict[str, list[str]] = defaultdict(list)
 
-    if SCENARIOS.exists():
-        for scenario in sorted(SCENARIOS.iterdir()):
-            if not scenario.is_dir():
+    for scenario in iter_scenarios(SCENARIOS):
+        data = load_yaml(scenario / "attack.yaml")
+        for technique in data.get("techniques", []):
+            tid = technique.get("id")
+            if not tid:
                 continue
-            attack_file = scenario / "attack.yaml"
-            if not attack_file.exists():
-                continue
-            with attack_file.open() as f:
-                data = yaml.safe_load(f) or {}
-            for technique in data.get("techniques", []):
-                tid = technique.get("id")
-                if not tid:
-                    continue
-                names[tid] = technique.get("name", "")
-                scenarios[tid].append(scenario.name)
+            names[tid] = technique.get("name", "")
+            scenarios[tid].append(scenario.name)
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     lines = [

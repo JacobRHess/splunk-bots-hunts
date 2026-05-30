@@ -54,7 +54,7 @@ scenarios/<id>-<slug>/
 Generated, committed artifacts:
 
 ```
-splunk_app/froth_bots_hunts/   installable Splunk app (dashboards + scheduled detections)
+splunk_app/froth_bots_hunts/   installable Splunk app (dashboards, ES detections, CIM tags, macros, lookups)
 docs/index.html                static HTML report (GitHub Pages ready)
 docs/attack-navigator-layer.json  MITRE ATT&CK Navigator layer
 ```
@@ -63,7 +63,15 @@ The full BOTSv3 dataset stays out of git. Fixtures committed alongside each hunt
 
 ## Splunk app
 
-`splunk_app/froth_bots_hunts/` is generated from the scenario sources by `harness/build_splunk_app.py`. It bundles every scenario dashboard as a view and every `detections.yaml` entry as a scheduled, ATT&CK-annotated saved search. Copy it to `$SPLUNK_HOME/etc/apps/` and restart, or upload it via Manage Apps. CI ingests the fixtures and runs `harness/run_detections.py` to assert each detection's `fixture_expect` (`fires` or `silent`), so the shipped rules can't rot.
+`splunk_app/froth_bots_hunts/` is generated from the scenario sources by `harness/build_splunk_app.py`. Copy it to `$SPLUNK_HOME/etc/apps/` and restart, or upload it via Manage Apps. It ships:
+
+- **Detections** as scheduled Enterprise Security correlation searches: each `detections.yaml` entry becomes a saved search with notable + risk actions, ATT&CK and analytic-story annotations, and a notable drilldown back to its events.
+- **CIM mapping** (`eventtypes.conf` + `tags.conf`): every BOTS v3 sourcetype this project hunts is tagged into the Authentication, Network Resolution, Endpoint, and Change data models, so the data can drive `tstats` and slot into Enterprise Security.
+- **Search macros** (`macros.conf`): `frothly_index`, `rfc1918(1)`, `cryptomining_pools`, `frothly_users` name the squishy bits the searches key on.
+- **Context lookups** (`lookups/`): `identities.csv` (employee/admin/service roles) and `assets.csv` (host owner + criticality), wired through `transforms.conf`.
+- **Dashboards**: a firing-status overview, an entity-centric **investigation** board that enriches activity with the lookups and drills into events, and the six per-scenario dashboards.
+
+CI ingests the fixtures, runs `harness/run_detections.py` to assert each detection's `fixture_expect` (`fires` or `silent`), and `btool`-validates that Splunk parses the savedsearches, macros, eventtypes, tags, and transforms, so the shipped app can't rot or install broken.
 
 The `docs/attack-navigator-layer.json` layer uploads directly to the [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) ("Open Existing Layer"), scored by scenario coverage.
 
@@ -98,24 +106,29 @@ The HTML report is a single self-contained file. Serve it locally or publish it 
 
 ## CI
 
-Two workflows, both on push and PR:
+Three workflows, on push and PR:
 
 `hunts.yml` runs in two jobs:
 
-- **lint** (~1 min): ruff, mypy strict, bandit security linting, pytest with coverage gate (50% minimum on pure-Python paths), pip-audit against the resolved lockfile.
-- **validate** (~3 min, runs after lint passes): boots Splunk in Docker, ingests every scenario's fixtures via HEC, runs every hunt's SPL via REST, asserts each answer.
+- **lint** (~1 min): ruff (with the `S`/flake8-bandit security rules), mypy strict, pytest with coverage gate (50% minimum on pure-Python paths).
+- **validate** (~3 min, runs after lint passes): boots Splunk in Docker, ingests every scenario's fixtures via HEC, runs every hunt's SPL via REST, asserts each answer, and `btool`-validates the generated app.
 
-`codeql.yml` runs CodeQL static analysis for Python on push, PR, and weekly.
+`security.yml` is the dedicated security gate (push, PR, and weekly):
 
-All third-party actions are SHA-pinned. Workflows declare least-privilege `permissions:` blocks. Concurrency groups cancel in-progress runs when a branch is updated.
+- **bandit** Python SAST and **pip-audit** against the locked dependencies.
+- **gitleaks** secret scanning across the working tree and full git history.
+- **zizmor** GitHub Actions workflow security audit.
+
+`codeql.yml` runs CodeQL static analysis for Python (enables automatically when the repo is public).
+
+All third-party actions are SHA-pinned, checkouts set `persist-credentials: false`, workflows declare least-privilege `permissions:` blocks, the Splunk CI image is pinned by digest, and Dependabot keeps actions and dependencies current. See [SECURITY.md](SECURITY.md).
 
 ## Security notes
 
-- Credentials in the repo are dev-only: `changeme`/`Chang3me!` passwords, fixed HEC token `00000000-...`. Never reuse them outside CI or a local sandbox.
-- The Python harness disables TLS verification (`verify=False`) because the Splunk Docker image presents a self-signed cert on its mgmt and HEC endpoints. Bandit's `B501` warning is suppressed for this reason and the suppression is scoped via `pyproject.toml`.
+- Credentials in the repo are dev-only: `changeme`/`Chang3me!` passwords, fixed HEC token `00000000-...`. Never reuse them outside CI or a local sandbox. They are allowlisted in `.gitleaks.toml` as known non-secrets.
+- The Python harness disables TLS verification (`verify=False`) only against the localhost Splunk Docker image, which presents a self-signed cert on its mgmt and HEC endpoints. Bandit's `B501` is suppressed for this reason, scoped in `pyproject.toml`; the deployed Splunk app contains no Python and makes no outbound calls.
 - Coverage on the HTTP-IO functions is excluded via `pragma: no cover`; those paths are exercised end-to-end by the `validate` CI job against a real Splunk container, not unit-tested with mocks.
-- `pip-audit` runs on every PR (with `--skip-editable`, since the local package is installed editable). Vulnerability findings break the build.
-- Hunt fixtures are slices of BOTSv3 public data. Nothing in the repo contains real customer or production telemetry.
+- Hunt fixtures are slices of BOTSv3 public data (synthetic AWS keys and the like), allowlisted for the secret scanner. Nothing in the repo contains real customer or production telemetry.
 
 ## Status
 
