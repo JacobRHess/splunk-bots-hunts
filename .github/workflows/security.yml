@@ -39,6 +39,9 @@ jobs:
     timeout-minutes: 8
     permissions:
       contents: read
+      # gitleaks-action enumerates the PR's commits through the API on
+      # pull_request events; without this it 403s ("not accessible by integration").
+      pull-requests: read
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
