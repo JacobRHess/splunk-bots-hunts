@@ -14,7 +14,7 @@ from typing import Any
 
 import yaml
 
-_SCENARIO_DIR = re.compile(r"\d+-")
+_SCENARIO_DIR = re.compile(r"^\d+-")
 
 
 def iter_scenarios(scenarios_dir: Path) -> Iterator[Path]:

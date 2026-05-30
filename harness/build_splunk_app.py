@@ -9,13 +9,13 @@ scenarios/*/detections.yaml so the app never drifts from the documented hunts.
 from __future__ import annotations
 
 import csv
+import html
 import io
 import json
 import sys
 import urllib.parse
 from dataclasses import dataclass
 from pathlib import Path
-from xml.sax import saxutils
 
 from harness import iter_scenarios, load_yaml
 
@@ -115,7 +115,7 @@ def _xml_text(text: str) -> str:
     Detection names and titles come from the scenario YAML; without this a name
     containing ``&`` or ``<`` would emit malformed dashboard XML.
     """
-    return saxutils.escape(text)
+    return html.escape(text, quote=False)
 
 
 def _cdata(spl: str) -> str:
@@ -443,7 +443,9 @@ def render_transforms() -> str:
 def _render_csv(fields: tuple[str, ...], rows: list[tuple[str, ...]]) -> str:
     buffer = io.StringIO()
     # QUOTE_MINIMAL with a fixed LF terminator: correctly quotes any field that
-    # contains a comma, quote, or newline rather than corrupting the row.
+    # contains a comma, quote, or newline rather than corrupting the row. We do
+    # not prefix-guard `= + - @` (spreadsheet formula injection): these are
+    # Splunk lookup tables, which Splunk reads as plain data and never evaluates.
     writer = csv.writer(buffer, lineterminator="\n", quoting=csv.QUOTE_MINIMAL)
     writer.writerow(fields)
     writer.writerows(rows)
