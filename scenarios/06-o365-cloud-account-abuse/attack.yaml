@@ -1,0 +1,9 @@
+techniques:
+  - id: T1078.004
+    name: "Valid Accounts: Cloud Accounts"
+  - id: T1080
+    name: "Taint Shared Content"
+  - id: T1098
+    name: "Account Manipulation"
+  - id: T1531
+    name: "Account Access Removal"

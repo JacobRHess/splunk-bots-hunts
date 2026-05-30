@@ -1,0 +1,38 @@
+detections:
+  - id: o365-anonymous-link-to-file
+    name: O365 file exposed by an anonymous sharing link
+    description: >
+      A Frothly user created an anonymous (no-sign-in) sharing link to a file in
+      OneDrive or SharePoint. Anonymous links make a file reachable by anyone who
+      has the URL, so they are how an attacker either stages a payload for victims
+      to pull or leaks a document outright. Fires on the bgist link to
+      BRUCE BIRTHDAY HAPPY HOUR PICS.lnk, which six external IPs then retrieved.
+    search: |
+      sourcetype=ms:o365:management Operation=AnonymousLinkCreated
+      | stats count values(SourceFileName) as files by UserId, ClientIP
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 60
+    attack:
+      - T1080
+    fixture_expect: fires
+  - id: o365-employee-set-mailbox
+    name: O365 Set-Mailbox run by a regular mailbox user
+    description: >
+      Set-Mailbox is an Exchange administration cmdlet. When the actor is an
+      ordinary employee mailbox rather than an admin or a Microsoft service
+      account, it means a user account is reconfiguring other people's mailboxes,
+      the shape of account takeover. Fires on fyodor running Set-Mailbox against
+      bgist (AccountDisabled) and klagerfield (token reset).
+    search: |
+      sourcetype=ms:o365:management Operation=Set-Mailbox UserId=*@froth.ly
+      | stats count values(ObjectId) as targets by UserId
+    cron: "*/15 * * * *"
+    earliest: -60m
+    latest: now
+    risk: 70
+    attack:
+      - T1098
+      - T1531
+    fixture_expect: fires

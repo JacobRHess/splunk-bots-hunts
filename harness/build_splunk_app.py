@@ -1,7 +1,7 @@
 """Assemble an installable Splunk app from the scenario sources.
 
 Output: splunk_app/froth_bots_hunts/ — a drop-in app (copy to
-$SPLUNK_HOME/etc/apps and restart) containing the four scenario dashboards as
+$SPLUNK_HOME/etc/apps and restart) containing the six scenario dashboards as
 views, plus every scenario detection as a scheduled saved search with ATT&CK
 annotations. Generated from scenarios/*/dashboards/*.xml and
 scenarios/*/detections.yaml so the app never drifts from the documented hunts.
@@ -159,7 +159,7 @@ def render_overview(detections: list[Detection]) -> str:
     return (
         "<dashboard>\n"
         "  <label>Frothly intrusion overview</label>\n"
-        "  <description>One KPI per shipped detection across the five BOTS v3 scenarios. "
+        "  <description>One KPI per shipped detection across the six BOTS v3 scenarios. "
         "Red means the detection is firing on the data in the selected window.</description>\n"
         + "\n".join(rows)
         + "\n</dashboard>\n"

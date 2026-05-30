@@ -1,0 +1,6 @@
+index=* sourcetype=ms:o365:management Operation=AnonymousLinkUsed earliest=-10y
+| stats count by SourceFileName
+| sort -count
+| head 1
+| rename SourceFileName as file
+| fields file
