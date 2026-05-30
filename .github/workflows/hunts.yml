@@ -85,6 +85,16 @@ jobs:
             --app=froth_bots_hunts | tee /tmp/btool.out
           grep -q "\[BOTS - " /tmp/btool.out
           echo "Splunk parsed the app's savedsearches.conf"
+          # The CIM, macro, and lookup conf must parse too, or the app installs broken.
+          docker exec splunk-bots /opt/splunk/bin/splunk btool macros list \
+            --app=froth_bots_hunts | grep -q "\[frothly_index\]"
+          docker exec splunk-bots /opt/splunk/bin/splunk btool eventtypes list \
+            --app=froth_bots_hunts | grep -q "\[frothly_aad_signin\]"
+          docker exec splunk-bots /opt/splunk/bin/splunk btool tags list \
+            --app=froth_bots_hunts | grep -q "authentication"
+          docker exec splunk-bots /opt/splunk/bin/splunk btool transforms list \
+            --app=froth_bots_hunts | grep -q "\[frothly_identities\]"
+          echo "Splunk parsed the app's macros, eventtypes, tags, and transforms"
 
       - name: Stop Splunk
         if: always()

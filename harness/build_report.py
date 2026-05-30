@@ -138,6 +138,27 @@ def _esc(text: str) -> str:
     return html.escape(text)
 
 
+def render_timeline(scenarios: list[Scenario]) -> str:
+    """A vertical timeline of the scenarios in order, showing the intrusion arc.
+
+    Each node links down to that scenario's card and shows its ATT&CK chips, so a
+    reader sees the whole kill chain before diving into any single hunt.
+    """
+    items = []
+    for s in scenarios:
+        chips = "".join(f'<span class="chip">{_esc(tid)}</span>' for tid, _ in s.techniques)
+        items.append(
+            '<li class="tl-item">'
+            f'<a class="tl-dot" href="#{_esc(s.slug)}">{_esc(s.number)}</a>'
+            '<div class="tl-body">'
+            f'<a class="tl-title" href="#{_esc(s.slug)}">{_esc(s.title)}</a>'
+            f'<p class="tl-summary">{_esc(s.summary)}</p>'
+            f'<div class="chips">{chips}</div>'
+            "</div></li>"
+        )
+    return f'<ol class="timeline">{"".join(items)}</ol>'
+
+
 def render(scenarios: list[Scenario]) -> str:
     techniques, coverage = build_matrix(scenarios)
     numbers = [s.number for s in scenarios]
@@ -196,6 +217,7 @@ def render(scenarios: list[Scenario]) -> str:
         hunt_count=total_hunts,
         detection_count=total_detections,
         technique_count=len(techniques),
+        timeline=render_timeline(scenarios),
         matrix_head=matrix_head,
         matrix_rows="".join(matrix_rows),
         cards="".join(cards) or '<p class="summary">No scenarios yet.</p>',
@@ -276,6 +298,18 @@ table.matrix code {{ color:var(--accent); }}
 footer {{ margin-top:48px; color:var(--muted); font-size:13px;
   border-top:1px solid var(--line); padding-top:16px; }}
 a {{ color:var(--accent); }}
+.lead {{ color:var(--muted); margin:0 0 16px; }}
+.timeline {{ list-style:none; margin:0; padding:0 0 0 8px;
+  border-left:2px solid var(--line); }}
+.tl-item {{ position:relative; padding:0 0 22px 26px; }}
+.tl-item:last-child {{ padding-bottom:0; }}
+.tl-dot {{ position:absolute; left:-15px; top:0; width:26px; height:26px;
+  border-radius:50%; background:var(--accent); color:#0d1117; font-weight:700;
+  font-size:13px; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; }}
+.tl-title {{ font-weight:600; color:var(--text); text-decoration:none; }}
+.tl-title:hover {{ color:var(--accent); }}
+.tl-summary {{ color:var(--muted); margin:4px 0 8px; font-size:14px; }}
 </style>
 </head>
 <body>
@@ -293,6 +327,9 @@ a {{ color:var(--accent); }}
 <p class="links">Deployable detections ship as a Splunk app
 (<code>splunk_app/froth_bots_hunts</code>). ATT&amp;CK coverage is also exported as a
 <a href="attack-navigator-layer.json">Navigator layer</a>.</p>
+<h2>Intrusion timeline</h2>
+<p class="lead">One intrusion on 2018-08-20, read in order. Each step links to its hunt.</p>
+{timeline}
 <h2>ATT&amp;CK coverage</h2>
 <div class="matrix-wrap">
 <table class="matrix">

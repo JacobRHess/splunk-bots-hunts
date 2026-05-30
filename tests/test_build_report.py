@@ -97,6 +97,26 @@ def test_render_matrix_is_accessible() -> None:
     scenarios = [_scenario("01", [("T1059", "PowerShell")])]
     html_out = build_report.render(scenarios)
     assert 'scope="col"' in html_out  # column headers
+
+
+def test_render_timeline_orders_scenarios_with_anchors() -> None:
+    scenarios = [
+        _scenario("01", [("T1059", "PowerShell")]),
+        _scenario("02", [("T1027", "Obfuscation")]),
+    ]
+    out = build_report.render_timeline(scenarios)
+    assert out.startswith('<ol class="timeline">')
+    assert out.count("tl-item") == 2
+    # each node links down to its scenario card and shows its technique chip
+    assert 'href="#01-x"' in out and 'href="#02-x"' in out
+    assert "T1059" in out and "T1027" in out
+
+
+def test_render_includes_timeline_section() -> None:
+    scenarios = [_scenario("01", [("T1059", "PowerShell")])]
+    html_out = build_report.render(scenarios)
+    assert "Intrusion timeline" in html_out
+    assert 'class="timeline"' in html_out
     assert 'scope="row"' in html_out  # technique row headers
     assert "covered" in html_out  # screen-reader text for matrix cells
     assert 'aria-expanded' in html_out  # hunt toggle state
