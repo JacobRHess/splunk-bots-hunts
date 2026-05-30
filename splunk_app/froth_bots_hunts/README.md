@@ -8,11 +8,12 @@ Copy `froth_bots_hunts/` to `$SPLUNK_HOME/etc/apps/` and restart Splunk, or uplo
 
 ## Contents
 
-- 7 scheduled detections (`default/savedsearches.conf`), each ATT&CK-annotated.
-- 6 dashboards (`default/data/ui/views/`):
+- 9 scheduled detections (`default/savedsearches.conf`), each ATT&CK-annotated.
+- 7 dashboards (`default/data/ui/views/`):
 - `overview`
 - `aws-recon-bstoll`
 - `bstoll-l-endpoint`
 - `bstoll-coinhive-cryptojacking`
 - `fyodor-powershell-empire`
 - `azure-ad-signin-anomaly`
+- `o365-cloud-account-abuse`

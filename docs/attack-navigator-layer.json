@@ -58,14 +58,26 @@
     },
     {
       "techniqueID": "T1078.004",
-      "score": 2,
-      "comment": "covered by 01-aws-recon-bstoll, 05-azure-ad-signin-anomaly",
+      "score": 3,
+      "comment": "covered by 01-aws-recon-bstoll, 05-azure-ad-signin-anomaly, 06-o365-cloud-account-abuse",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1080",
+      "score": 1,
+      "comment": "covered by 06-o365-cloud-account-abuse",
       "enabled": true
     },
     {
       "techniqueID": "T1087.004",
       "score": 1,
       "comment": "covered by 01-aws-recon-bstoll",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1098",
+      "score": 1,
+      "comment": "covered by 06-o365-cloud-account-abuse",
       "enabled": true
     },
     {
@@ -93,6 +105,12 @@
       "enabled": true
     },
     {
+      "techniqueID": "T1531",
+      "score": 1,
+      "comment": "covered by 06-o365-cloud-account-abuse",
+      "enabled": true
+    },
+    {
       "techniqueID": "T1580",
       "score": 1,
       "comment": "covered by 01-aws-recon-bstoll",
@@ -112,7 +130,7 @@
       "#1f6feb"
     ],
     "minValue": 0,
-    "maxValue": 2
+    "maxValue": 3
   },
   "legendItems": [],
   "showTacticRowBackground": true,

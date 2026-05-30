@@ -1,0 +1,3 @@
+index=* sourcetype=ms:o365:management Operation=AnonymousLinkUsed UserId=anonymous earliest=-10y
+| stats dc(ClientIP) as ips
+| fields ips

@@ -1,0 +1,6 @@
+index=* sourcetype=ms:o365:management Operation=Set-Mailbox UserId="*@froth.ly" earliest=-10y
+| stats count by UserId
+| sort -count
+| head 1
+| rename UserId as user
+| fields user

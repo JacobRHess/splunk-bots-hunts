@@ -1,0 +1,80 @@
+<form>
+  <label>O365 cloud account abuse</label>
+  <description>Frothly Office 365 management-activity review: anonymous file sharing, external retrievals of the shared file, and Set-Mailbox runs by regular mailbox users.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="earliest_tok">
+      <default>
+        <earliest>-10y</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Anonymous-link retrievals (count)</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=ms:o365:management Operation=AnonymousLinkUsed UserId=anonymous | stats dc(ClientIP)</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Set-Mailbox by employee accounts (count)</title>
+      <single>
+        <search>
+          <query>index=* sourcetype=ms:o365:management Operation=Set-Mailbox UserId="*@froth.ly" | stats count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Anonymous links created (who, from where, which file)</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=ms:o365:management Operation=AnonymousLinkCreated | stats count by UserId, ClientIP, SourceFileName | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>External IPs that retrieved the shared file</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=ms:o365:management Operation=AnonymousLinkUsed UserId=anonymous | stats count by ClientIP, SourceFileName | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Set-Mailbox runs by employee accounts (target mailboxes)</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=ms:o365:management Operation=Set-Mailbox UserId="*@froth.ly" | stats count by UserId, ObjectId | sort -count</query>
+          <earliest>$earliest_tok.earliest$</earliest>
+          <latest>$earliest_tok.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</form>

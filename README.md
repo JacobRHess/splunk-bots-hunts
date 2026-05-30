@@ -9,7 +9,7 @@
 
 Most BOTS v3 writeups are a blog post with SPL screenshots: static, one question at a time, impossible to tell if they still hold. This one is a repo. On every commit, CI boots a Splunk container, replays the evidence as fixtures over HEC, runs every hunt and asserts its answer, runs every detection and asserts it fires on malicious data while staying silent on benign, and validates the installable app with `btool`. If a finding rots or a rule stops firing, the build breaks.
 
-Five scenarios follow one intrusion across the telemetry, not twenty disconnected questions: a compromised AWS account (01), the laptop behind it (02), a browser cryptominer on that laptop (03), a fileless PowerShell implant on a second host (04), and that same `fyodor` identity reused against Azure AD from a Hong Kong VPS (05). Each scenario is a documented hunt (the question, the SPL, the pivots, the ATT&CK techniques) that then ships the detection it would have written, tested against both malicious and benign fixtures and packaged as an installable Splunk app.
+Six scenarios follow one intrusion across the telemetry, not twenty disconnected questions: a compromised AWS account (01), the laptop behind it (02), a browser cryptominer on that laptop (03), a fileless PowerShell implant on a second host (04), that same `fyodor` identity reused against Azure AD from a Hong Kong VPS (05), and what the stolen cloud accounts then did inside Office 365 (06). Each scenario is a documented hunt (the question, the SPL, the pivots, the ATT&CK techniques) that then ships the detection it would have written, tested against both malicious and benign fixtures and packaged as an installable Splunk app.
 
 ## The intrusion
 
@@ -23,14 +23,16 @@ flowchart LR
     C["03 · Coinhive miner<br/>browser foothold<br/>T1496"]:::host
     D["04 · PowerShell implant<br/>FYODOR-L, registry persistence<br/>T1059.001 / T1053.005"]:::host
     E["05 · Azure AD sign-ins<br/>fyodor from HK VPS<br/>T1078.004 / T1110.003"]:::cloud
+    F["06 · O365 account abuse<br/>bgist shares a lure, fyodor edits mailboxes<br/>T1080 / T1098 / T1531"]:::cloud
 
     A -->|how were the keys stolen| B
     B -->|browser was the weak point| C
     C -. separate foothold .-> D
     D -->|same identity reused| E
+    E -->|same accounts, now in O365| F
 ```
 
-`bstoll` ties scenarios 01-03; `fyodor` ties 04-05. Two compromised users, four hosts and cloud tenants, one timeline on 2018-08-20.
+`bstoll` ties scenarios 01-03; `fyodor` ties 04-06, with `bgist` carrying the cloud accounts from 05 into 06. Two compromised users, several hosts and cloud tenants, one timeline on 2018-08-20.
 
 ## Hunts and detections
 
@@ -117,6 +119,6 @@ All third-party actions are SHA-pinned. Workflows declare least-privilege `permi
 
 ## Status
 
-Five scenarios shipped: 20 hunts and 7 deployable detections across 16 ATT&CK techniques. The first three follow one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Scenario 04 turns to a second compromised host, `FYODOR-L`, running a fileless PowerShell implant. Scenario 05 follows that same `fyodor` identity off the endpoint and into Azure AD, where the credentials sign in from a Hong Kong VPS. A generated HTML report at `docs/index.html` indexes every scenario, hunt, detection, and ATT&CK technique. Adding more as the dataset gets worked through.
+Six scenarios shipped: 25 hunts and 9 deployable detections across 19 ATT&CK techniques. The first three follow one thread: a compromised `bstoll` AWS account (01), ruling out remote endpoint compromise on `BSTOLL-L` (02), and finding the browser cryptojacking that put attacker JavaScript on that same laptop (03). Scenario 04 turns to a second compromised host, `FYODOR-L`, running a fileless PowerShell implant. Scenario 05 follows that same `fyodor` identity off the endpoint and into Azure AD, where the credentials sign in from a Hong Kong VPS. Scenario 06 stays in the cloud, using the O365 management log to show what the stolen `bgist` and `fyodor` accounts did once inside: `bgist` exposes a `.lnk` lure through an anonymous sharing link from the same Hong Kong IP, and `fyodor` runs `Set-Mailbox` against colleagues, disabling one. A generated HTML report at `docs/index.html` indexes every scenario, hunt, detection, and ATT&CK technique. Adding more as the dataset gets worked through.
 
 Hunts are written with `index=*` so they run against either the real `index=botsv3` or the CI fixture index; the generated detections are scoped to `index=botsv3` for deployment.

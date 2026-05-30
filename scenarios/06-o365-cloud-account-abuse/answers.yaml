@@ -1,0 +1,21 @@
+hunts:
+  - file: 01-anonymous-link-file.spl
+    question: Which file was retrieved through an anonymous sharing link in Office 365?
+    expected: BRUCE BIRTHDAY HAPPY HOUR PICS.lnk
+    field: file
+  - file: 02-anonymous-link-creator.spl
+    question: Which Frothly account created the anonymous sharing link?
+    expected: bgist@froth.ly
+    field: user
+  - file: 03-anonymous-link-source-ip.spl
+    question: What source IP was the anonymous link created from?
+    expected: 104.207.83.63
+    field: ip
+  - file: 04-anonymous-link-retrievals.spl
+    question: How many distinct external IPs retrieved the anonymously shared file?
+    expected: "6"
+    field: ips
+  - file: 05-set-mailbox-abuse.spl
+    question: Which Frothly account ran Set-Mailbox against other users' mailboxes?
+    expected: fyodor@froth.ly
+    field: user

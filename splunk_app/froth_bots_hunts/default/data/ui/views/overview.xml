@@ -1,6 +1,6 @@
 <dashboard>
   <label>Frothly intrusion overview</label>
-  <description>One KPI per shipped detection across the five BOTS v3 scenarios. Red means the detection is firing on the data in the selected window.</description>
+  <description>One KPI per shipped detection across the six BOTS v3 scenarios. Red means the detection is firing on the data in the selected window.</description>
   <row>
     <panel>
       <single>
@@ -95,6 +95,34 @@
         <title>Azure AD failed sign-ins across multiple accounts</title>
         <search>
           <query><![CDATA[index=botsv3 sourcetype=ms:aad:signin loginStatus=Failure | stats dc(userPrincipalName) as users count as failures | where users>=3 | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>O365 file exposed by an anonymous sharing link</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=ms:o365:management Operation=AnonymousLinkCreated | stats count values(SourceFileName) as files by UserId, ClientIP | stats count]]></query>
+          <earliest>-10y</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>O365 Set-Mailbox run by a regular mailbox user</title>
+        <search>
+          <query><![CDATA[index=botsv3 sourcetype=ms:o365:management Operation=Set-Mailbox UserId=*@froth.ly | stats count values(ObjectId) as targets by UserId | stats count]]></query>
           <earliest>-10y</earliest>
           <latest>now</latest>
         </search>

@@ -1,0 +1,6 @@
+index=* sourcetype=ms:o365:management Operation=AnonymousLinkCreated earliest=-10y
+| stats count by ClientIP
+| sort -count
+| head 1
+| rename ClientIP as ip
+| fields ip
