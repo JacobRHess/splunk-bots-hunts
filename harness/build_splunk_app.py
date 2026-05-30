@@ -8,11 +8,14 @@ scenarios/*/detections.yaml so the app never drifts from the documented hunts.
 """
 from __future__ import annotations
 
+import csv
+import io
 import json
 import sys
 import urllib.parse
 from dataclasses import dataclass
 from pathlib import Path
+from xml.sax import saxutils
 
 from harness import iter_scenarios, load_yaml
 
@@ -104,6 +107,21 @@ _NOTABLE_URGENCY = {1: "informational", 2: "low", 3: "medium", 4: "high", 5: "cr
 
 def _oneline(text: str) -> str:
     return " ".join(text.split())
+
+
+def _xml_text(text: str) -> str:
+    """Escape text destined for an XML element body (``&`` ``<`` ``>``).
+
+    Detection names and titles come from the scenario YAML; without this a name
+    containing ``&`` or ``<`` would emit malformed dashboard XML.
+    """
+    return saxutils.escape(text)
+
+
+def _cdata(spl: str) -> str:
+    """Wrap a search in CDATA, neutralising any literal ``]]>`` that would
+    otherwise close the section early."""
+    return "<![CDATA[" + spl.replace("]]>", "]]]]><![CDATA[>") + "]]>"
 
 
 def _severity(risk: int) -> int:
@@ -220,9 +238,9 @@ def render_overview(detections: list[Detection]) -> str:
         panels.append(
             "    <panel>\n"
             "      <single>\n"
-            f"        <title>{det.name}</title>\n"
+            f"        <title>{_xml_text(det.name)}</title>\n"
             "        <search>\n"
-            f"          <query><![CDATA[{deployed} | stats count]]></query>\n"
+            f"          <query>{_cdata(deployed + ' | stats count')}</query>\n"
             "          <earliest>-10y</earliest>\n"
             "          <latest>now</latest>\n"
             "        </search>\n"
@@ -253,9 +271,9 @@ def _kpi_panel(title: str, query: str, drill: str) -> str:
     return (
         "    <panel>\n"
         "      <single>\n"
-        f"        <title>{title}</title>\n"
+        f"        <title>{_xml_text(title)}</title>\n"
         "        <search>\n"
-        f"          <query><![CDATA[{query}]]></query>\n"
+        f"          <query>{_cdata(query)}</query>\n"
         "          <earliest>$tr.earliest$</earliest>\n"
         "          <latest>$tr.latest$</latest>\n"
         "        </search>\n"
@@ -275,9 +293,9 @@ def _table_panel(title: str, query: str, drill: str) -> str:
     return (
         "    <panel>\n"
         "      <table>\n"
-        f"        <title>{title}</title>\n"
+        f"        <title>{_xml_text(title)}</title>\n"
         "        <search>\n"
-        f"          <query><![CDATA[{query}]]></query>\n"
+        f"          <query>{_cdata(query)}</query>\n"
         "          <earliest>$tr.earliest$</earliest>\n"
         "          <latest>$tr.latest$</latest>\n"
         "        </search>\n"
@@ -423,9 +441,13 @@ def render_transforms() -> str:
 
 
 def _render_csv(fields: tuple[str, ...], rows: list[tuple[str, ...]]) -> str:
-    out = [",".join(fields)]
-    out.extend(",".join(row) for row in rows)
-    return "\n".join(out) + "\n"
+    buffer = io.StringIO()
+    # QUOTE_MINIMAL with a fixed LF terminator: correctly quotes any field that
+    # contains a comma, quote, or newline rather than corrupting the row.
+    writer = csv.writer(buffer, lineterminator="\n", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(fields)
+    writer.writerows(rows)
+    return buffer.getvalue()
 
 
 def render_meta() -> str:

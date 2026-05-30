@@ -13,10 +13,12 @@ from harness.build_splunk_app import (
     IDENTITY_FIELDS,
     SCENARIOS,
     Detection,
+    _cdata,
     _oneline,
     _render_csv,
     _search_link,
     _severity,
+    _xml_text,
     load_detections,
     load_views,
     render_app_conf,
@@ -166,6 +168,35 @@ def test_search_link_is_xml_safe_and_encoded() -> None:
 def test_render_overview_tiles_drill_down() -> None:
     out = render_overview([_det()])
     assert "<drilldown>" in out and "<link target=\"_blank\">search?q=" in out
+
+
+def test_xml_text_escapes_markup() -> None:
+    assert _xml_text("A & B <x>") == "A &amp; B &lt;x&gt;"
+
+
+def test_cdata_neutralises_terminator() -> None:
+    # a literal ]]> inside a search must round-trip through CDATA intact, not
+    # close the section early and corrupt the XML
+    spl = "search foo=1 ]]> bar"
+    root = ET.fromstring(f"<query>{_cdata(spl)}</query>")
+    assert root.text == spl
+
+
+def test_generated_dashboards_survive_hostile_detection_text() -> None:
+    # A detection name with XML markup and a search carrying a CDATA terminator
+    # must still produce well-formed dashboard XML, not a broken view.
+    hostile = _det(
+        name="A & B <script> rule",
+        description='quote " and & < here',
+        search='sourcetype=x note="end ]]> here" | stats count',
+    )
+    ET.fromstring(render_overview([hostile]))
+
+
+def test_render_csv_quotes_special_fields() -> None:
+    out = _render_csv(("a", "b"), [("has,comma", 'has"quote')])
+    rows = out.strip().splitlines()
+    assert rows == ["a,b", '"has,comma","has""quote"']
 
 
 def test_render_investigation_uses_macros_and_lookups() -> None:
