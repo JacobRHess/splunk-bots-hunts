@@ -90,6 +90,11 @@ def test_render_savedsearches_notable_params() -> None:
     ) in out
 
 
+def test_render_savedsearches_appends_tuning() -> None:
+    out = render_savedsearches([_det(tuning="Allowlist break-glass admins")])
+    assert "Tuning: Allowlist break-glass admins" in out
+
+
 def test_render_savedsearches_is_valid_ini() -> None:
     out = render_savedsearches([_det(), _det(name="Second", scenario="02-y")])
     parser = configparser.ConfigParser(strict=True)
@@ -207,6 +212,11 @@ def test_render_investigation_uses_macros_and_lookups() -> None:
     assert "`frothly_index`" in out  # uses the deploy-index macro
     assert "lookup frothly_identities" in out and "lookup frothly_assets" in out
     assert out.count("<drilldown>") >= 3  # every panel pivots to events
+    # eventtypes must be referenced as `eventtype=NAME`, never with backtick
+    # (macro) syntax, which would make every panel search fail to parse.
+    for et in ("frothly_o365_management", "frothly_aad_signin", "frothly_aws_cloudtrail"):
+        assert f"eventtype={et}" in out
+        assert f"`{et}`" not in out
 
 
 # ---- drift guards over the committed splunk_app/ ----

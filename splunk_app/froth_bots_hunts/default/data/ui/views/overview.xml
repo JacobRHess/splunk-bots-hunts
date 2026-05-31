@@ -12,7 +12,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Daws%3Acloudtrail%20eventName%3DConsoleLogin%20additionalEventData.MFAUsed%3DNo%20userIdentity.type%3DIAMUser%20%7C%20stats%20count%20min%28_time%29%20as%20firstTime%20values%28sourceIPAddress%29%20as%20src_ip%20by%20userIdentity.userName%20%7C%20rename%20userIdentity.userName%20as%20user&amp;earliest=-10y&amp;latest=now</link>
@@ -29,7 +29,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20EventCode%3D4624%20%28Logon_Type%3D3%20OR%20Logon_Type%3D10%29%20%7C%20eval%20is_external%3Dif%28match%28Source_Network_Address%2C%20%22%5E%5Cd%7B1%2C3%7D%28%5C.%5Cd%7B1%2C3%7D%29%7B3%7D%24%22%29%20AND%20NOT%20cidrmatch%28%2210.0.0.0/8%22%2C%20Source_Network_Address%29%20AND%20NOT%20cidrmatch%28%22172.16.0.0/12%22%2C%20Source_Network_Address%29%20AND%20NOT%20cidrmatch%28%22192.168.0.0/16%22%2C%20Source_Network_Address%29%20AND%20NOT%20cidrmatch%28%22127.0.0.0/8%22%2C%20Source_Network_Address%29%2C%201%2C%200%29%20%7C%20where%20is_external%3D1%20%7C%20stats%20count%20by%20host%2C%20Source_Network_Address%2C%20Account_Name&amp;earliest=-10y&amp;latest=now</link>
@@ -40,16 +40,16 @@
       <single>
         <title>Cryptomining pool DNS resolution</title>
         <search>
-          <query><![CDATA[index=botsv3 sourcetype=stream:dns (query=*coinhive.com OR query=*minexmr.com OR query=*nanopool.org OR query=*xmrpool.* OR query=*cryptonight.*) | stats count dc(query) as distinct_fqdns values(query) as fqdns by src_ip | stats count]]></query>
+          <query><![CDATA[index=botsv3 sourcetype=stream:dns (query="*coinhive.com" OR query="*minexmr.com" OR query="*nanopool.org" OR query="*xmrpool.*" OR query="*cryptonight.*") | stats count dc(query) as distinct_fqdns values(query) as fqdns | stats count]]></query>
           <earliest>-10y</earliest>
           <latest>now</latest>
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
-          <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dstream%3Adns%20%28query%3D%2Acoinhive.com%20OR%20query%3D%2Aminexmr.com%20OR%20query%3D%2Ananopool.org%20OR%20query%3D%2Axmrpool.%2A%20OR%20query%3D%2Acryptonight.%2A%29%20%7C%20stats%20count%20dc%28query%29%20as%20distinct_fqdns%20values%28query%29%20as%20fqdns%20by%20src_ip&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dstream%3Adns%20%28query%3D%22%2Acoinhive.com%22%20OR%20query%3D%22%2Aminexmr.com%22%20OR%20query%3D%22%2Ananopool.org%22%20OR%20query%3D%22%2Axmrpool.%2A%22%20OR%20query%3D%22%2Acryptonight.%2A%22%29%20%7C%20stats%20count%20dc%28query%29%20as%20distinct_fqdns%20values%28query%29%20as%20fqdns&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </single>
     </panel>
@@ -65,7 +65,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3DXmlWinEventLog%3AMicrosoft-Windows-Sysmon/Operational%20EventCode%3D1%20Image%3D%2Apowershell.exe%20%28CommandLine%3D%2AFromBase64String%2A%20OR%20CommandLine%3D%2A-enc%2A%29%20%7C%20stats%20count%20values%28CommandLine%29%20as%20cmdlines%20by%20Computer%2C%20User&amp;earliest=-10y&amp;latest=now</link>
@@ -82,7 +82,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3DXmlWinEventLog%3AMicrosoft-Windows-Sysmon/Operational%20EventCode%3D1%20Image%3D%2Apowershell.exe%20ParentImage%3D%2Asvchost.exe%20%7C%20stats%20count%20by%20Computer%2C%20User%2C%20ParentCommandLine&amp;earliest=-10y&amp;latest=now</link>
@@ -99,7 +99,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dms%3Aaad%3Asignin%20loginStatus%3DSuccess%20NOT%20%28location.country%3DUS%20OR%20location.country%3DCA%29%20%7C%20stats%20count%20values%28location.country%29%20as%20countries%20by%20userPrincipalName%2C%20ipAddress&amp;earliest=-10y&amp;latest=now</link>
@@ -118,7 +118,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dms%3Aaad%3Asignin%20loginStatus%3DFailure%20%7C%20stats%20dc%28userPrincipalName%29%20as%20users%20count%20as%20failures%20%7C%20where%20users%3E%3D3&amp;earliest=-10y&amp;latest=now</link>
@@ -135,7 +135,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dms%3Ao365%3Amanagement%20Operation%3DAnonymousLinkCreated%20%7C%20stats%20count%20values%28SourceFileName%29%20as%20files%20by%20UserId%2C%20ClientIP&amp;earliest=-10y&amp;latest=now</link>
@@ -152,7 +152,7 @@
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
           <link target="_blank">search?q=search%20index%3Dbotsv3%20sourcetype%3Dms%3Ao365%3Amanagement%20Operation%3DSet-Mailbox%20UserId%3D%2A%40froth.ly%20%7C%20stats%20count%20values%28ObjectId%29%20as%20targets%20by%20UserId&amp;earliest=-10y&amp;latest=now</link>

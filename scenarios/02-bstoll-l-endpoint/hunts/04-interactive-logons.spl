@@ -1,3 +1,4 @@
-index=* host=BSTOLL-L EventCode=4624 Logon_Type=2 earliest=-10y
+index=* host=BSTOLL-L EventCode=4624 earliest=-10y
+| where Logon_Type==2
 | stats count
 | fields count

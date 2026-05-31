@@ -24,4 +24,5 @@ detections:
       - T1021.001
       - T1021.002
       - T1078.002
+    tuning: "Jump boxes and corporate VPN concentrators produce legitimate type-3/10 logons; allowlist known admin source CIDRs before enabling."
     fixture_expect: silent

@@ -16,6 +16,7 @@ detections:
     risk: 60
     attack:
       - T1080
+    tuning: "Tenants that use anonymous links for collaboration will be noisy; scope to risky extensions (.lnk/.exe/.js) or external domains, or alert only on a user's first anonymous share."
     fixture_expect: fires
   - id: o365-employee-set-mailbox
     name: O365 Set-Mailbox run by a regular mailbox user
@@ -35,4 +36,5 @@ detections:
     attack:
       - T1098
       - T1531
+    tuning: "Delegated admins and help-desk staff legitimately run Set-Mailbox; drive the actor allowlist from an identity lookup of mailbox admins instead of a domain glob."
     fixture_expect: fires

@@ -52,7 +52,7 @@ def _scenario(number: str, techniques: list[tuple[str, str]]) -> Scenario:
         summary="summary",
         hunts=[Hunt(file="01-a.spl", question="Q?", expected="ans", field="f", spl="search x")],
         techniques=techniques,
-        detections=["A detection"],
+        detections=[("A detection", "Allowlist known admins")],
     )
 
 
@@ -117,6 +117,12 @@ def test_render_includes_timeline_section() -> None:
     html_out = build_report.render(scenarios)
     assert "Intrusion timeline" in html_out
     assert 'class="timeline"' in html_out
+
+
+def test_render_shows_detection_tuning() -> None:
+    html_out = build_report.render([_scenario("01", [("T1059", "PowerShell")])])
+    assert "A detection" in html_out
+    assert "Tuning: Allowlist known admins" in html_out
     assert 'scope="row"' in html_out  # technique row headers
     assert "covered" in html_out  # screen-reader text for matrix cells
     assert 'aria-expanded' in html_out  # hunt toggle state
@@ -138,7 +144,7 @@ def test_render_escapes_html_in_content() -> None:
             summary="sum & more",
             hunts=[Hunt(file="01-a.spl", question="a < b", expected="x>y", field=None, spl="<x>")],
             techniques=[],
-            detections=["Det <i>"],
+            detections=[("Det <i>", "tune <b>")],
         )
     ]
     html_out = build_report.render(scenarios)

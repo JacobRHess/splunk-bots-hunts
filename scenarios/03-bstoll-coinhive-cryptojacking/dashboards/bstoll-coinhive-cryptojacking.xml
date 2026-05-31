@@ -16,13 +16,13 @@
       <title>Distinct coinhive mining endpoints (ws*)</title>
       <single>
         <search>
-          <query>index=* sourcetype=stream:dns query=ws*.coinhive.com | stats dc(query)</query>
+          <query>index=* sourcetype=stream:dns query="ws*.coinhive.com" | stats dc(query)</query>
           <earliest>$earliest_tok.earliest$</earliest>
           <latest>$earliest_tok.latest$</latest>
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
       </single>
     </panel>
@@ -33,7 +33,7 @@
       <title>coinhive.com resolutions by source IP</title>
       <chart>
         <search>
-          <query>index=* sourcetype=stream:dns query=*coinhive.com | stats count by src_ip | sort -count</query>
+          <query>index=* sourcetype=stream:dns coinhive.com src_ip=* | stats count by src_ip | sort -count</query>
           <earliest>$earliest_tok.earliest$</earliest>
           <latest>$earliest_tok.latest$</latest>
         </search>
@@ -47,7 +47,7 @@
       <title>Mining endpoints resolved by BSTOLL-L</title>
       <table>
         <search>
-          <query>index=* sourcetype=stream:dns src_ip=192.168.247.131 query=*coinhive.com | stats count, values(host_addr) as resolved_ip by query | sort -count</query>
+          <query>index=* sourcetype=stream:dns query="*coinhive.com" | stats count values(host_addr) as resolved_ip by query | sort -count</query>
           <earliest>$earliest_tok.earliest$</earliest>
           <latest>$earliest_tok.latest$</latest>
         </search>
@@ -60,7 +60,7 @@
       <title>Coinhive DNS activity - timeline</title>
       <chart>
         <search>
-          <query>index=* sourcetype=stream:dns query=*coinhive.com | timechart span=1h count</query>
+          <query>index=* sourcetype=stream:dns query="*coinhive.com" | timechart span=1h count</query>
           <earliest>$earliest_tok.earliest$</earliest>
           <latest>$earliest_tok.latest$</latest>
         </search>

@@ -14,16 +14,16 @@
       <single>
         <title>Anonymous O365 link retrievals</title>
         <search>
-          <query><![CDATA[`frothly_index` `frothly_o365_management` Operation=AnonymousLinkUsed UserId=anonymous | stats dc(ClientIP)]]></query>
+          <query><![CDATA[`frothly_index` eventtype=frothly_o365_management Operation=AnonymousLinkUsed UserId=anonymous | stats dc(ClientIP)]]></query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
-          <link target="_blank">search?q=search%20%60frothly_index%60%20%60frothly_o365_management%60%20Operation%3DAnonymousLinkUsed%20UserId%3Danonymous&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20%60frothly_index%60%20eventtype%3Dfrothly_o365_management%20Operation%3DAnonymousLinkUsed%20UserId%3Danonymous&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </single>
     </panel>
@@ -31,16 +31,16 @@
       <single>
         <title>Foreign Azure AD sign-ins</title>
         <search>
-          <query><![CDATA[`frothly_index` `frothly_aad_signin` loginStatus=Success NOT (location.country=US OR location.country=CA) | stats count]]></query>
+          <query><![CDATA[`frothly_index` eventtype=frothly_aad_signin loginStatus=Success NOT (location.country=US OR location.country=CA) | stats count]]></query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
-          <link target="_blank">search?q=search%20%60frothly_index%60%20%60frothly_aad_signin%60%20loginStatus%3DSuccess%20NOT%20%28location.country%3DUS%20OR%20location.country%3DCA%29&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20%60frothly_index%60%20eventtype%3Dfrothly_aad_signin%20loginStatus%3DSuccess%20NOT%20%28location.country%3DUS%20OR%20location.country%3DCA%29&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </single>
     </panel>
@@ -48,16 +48,16 @@
       <single>
         <title>AWS console logins without MFA</title>
         <search>
-          <query><![CDATA[`frothly_index` `frothly_aws_cloudtrail` eventName=ConsoleLogin additionalEventData.MFAUsed=No | stats count]]></query>
+          <query><![CDATA[`frothly_index` eventtype=frothly_aws_cloudtrail eventName=ConsoleLogin additionalEventData.MFAUsed=No | stats count]]></query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
         </search>
         <option name="colorBy">value</option>
         <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
-        <option name="rangeValues">[1]</option>
+        <option name="rangeValues">[0]</option>
         <option name="useColors">1</option>
         <drilldown>
-          <link target="_blank">search?q=search%20%60frothly_index%60%20%60frothly_aws_cloudtrail%60%20eventName%3DConsoleLogin%20additionalEventData.MFAUsed%3DNo&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20%60frothly_index%60%20eventtype%3Dfrothly_aws_cloudtrail%20eventName%3DConsoleLogin%20additionalEventData.MFAUsed%3DNo&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </single>
     </panel>
@@ -67,13 +67,13 @@
       <table>
         <title>Cloud identities and roles (O365)</title>
         <search>
-          <query><![CDATA[`frothly_index` `frothly_o365_management` `frothly_users` | stats count values(Operation) as operations by UserId | lookup frothly_identities identity as UserId OUTPUT role team | sort -count]]></query>
+          <query><![CDATA[`frothly_index` eventtype=frothly_o365_management `frothly_users` | stats count values(Operation) as operations by UserId | lookup frothly_identities identity as UserId OUTPUT role team | sort -count]]></query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
         </search>
         <option name="drilldown">row</option>
         <drilldown>
-          <link target="_blank">search?q=search%20%60frothly_index%60%20%60frothly_o365_management%60%20%60frothly_users%60%20%7C%20stats%20count%20values%28Operation%29%20as%20operations%20by%20UserId%20%7C%20lookup%20frothly_identities%20identity%20as%20UserId%20OUTPUT%20role%20team%20%7C%20sort%20-count&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20%60frothly_index%60%20eventtype%3Dfrothly_o365_management%20%60frothly_users%60%20%7C%20stats%20count%20values%28Operation%29%20as%20operations%20by%20UserId%20%7C%20lookup%20frothly_identities%20identity%20as%20UserId%20OUTPUT%20role%20team%20%7C%20sort%20-count&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </table>
     </panel>
@@ -81,13 +81,13 @@
       <table>
         <title>Endpoint hosts, owners, and criticality</title>
         <search>
-          <query><![CDATA[`frothly_index` `frothly_wineventlog_security` | stats count by host | lookup frothly_assets host OUTPUT owner criticality zone | sort -count]]></query>
+          <query><![CDATA[`frothly_index` eventtype=frothly_wineventlog_security | stats count by host | lookup frothly_assets host OUTPUT owner criticality zone | sort -count]]></query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
         </search>
         <option name="drilldown">row</option>
         <drilldown>
-          <link target="_blank">search?q=search%20%60frothly_index%60%20%60frothly_wineventlog_security%60%20%7C%20stats%20count%20by%20host%20%7C%20lookup%20frothly_assets%20host%20OUTPUT%20owner%20criticality%20zone%20%7C%20sort%20-count&amp;earliest=-10y&amp;latest=now</link>
+          <link target="_blank">search?q=search%20%60frothly_index%60%20eventtype%3Dfrothly_wineventlog_security%20%7C%20stats%20count%20by%20host%20%7C%20lookup%20frothly_assets%20host%20OUTPUT%20owner%20criticality%20zone%20%7C%20sort%20-count&amp;earliest=-10y&amp;latest=now</link>
         </drilldown>
       </table>
     </panel>

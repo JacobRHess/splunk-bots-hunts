@@ -17,4 +17,5 @@ detections:
     risk: 60
     attack:
       - T1078.004
+    tuning: "Break-glass admins and federated service principals can sign in without MFA; allowlist their IAM user names or exclude accounts covered by an SSO MFA policy."
     fixture_expect: fires
