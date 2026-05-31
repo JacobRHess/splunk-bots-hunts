@@ -22,7 +22,7 @@ detections:
     description: >
       Failed Azure AD sign-ins spread across several accounts in a short window,
       the shape of a password spray. Fires when three or more distinct users
-      fail, which they do here from the same Hong Kong source.
+      fail, which they do here across five accounts and several source IPs.
     search: |
       sourcetype=ms:aad:signin loginStatus=Failure
       | stats dc(userPrincipalName) as users count as failures

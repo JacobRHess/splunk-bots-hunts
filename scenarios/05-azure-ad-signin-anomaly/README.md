@@ -6,14 +6,14 @@ Frothly is a Colorado and California company, so its Azure AD sign-in logs shoul
 
 `fyodor@froth.ly` is the same identity behind the PowerShell implant on `FYODOR-L` in [scenario 04](../04-fyodor-powershell-empire/). Seeing that account authenticate to the cloud from a Hong Kong VPS is the cloud-side echo of the endpoint compromise: the attacker is reusing Fyodor's credentials against Azure AD, not just his laptop.
 
-Alongside the successful foreign logins there are ten failed sign-ins spread across five accounts from the same source, which reads as credential testing rather than one fat-fingered password.
+Alongside the successful foreign logins there are ten failed sign-ins spread across five accounts and several source IPs, which reads as credential testing rather than one fat-fingered password.
 
 ## How I worked it
 
 1. Counted successful `ms:aad:signin` events by `location.country`. US and CA dominate; `HK` is the one country that has no business being there.
 2. Pulled the source IP for those non-US/CA sign-ins. All of them trace to `104.207.83.63`, a hosting-provider address, not a residential or corporate range.
 3. Counted the distinct accounts that logged in successfully from Hong Kong: two, `bgist` and `fyodor`. The `fyodor` overlap with scenario 04 is the pivot that ties cloud to endpoint.
-4. Counted the failed sign-ins. Ten failures across five accounts from the same IP, consistent with a spray against known usernames.
+4. Counted the failed sign-ins. Ten failures across five accounts from several source IPs, consistent with a spray against known usernames rather than one user mistyping a password.
 
 ## Reading the results
 
@@ -35,8 +35,8 @@ The failures change the read from "one stolen credential" to "the attacker is wo
 | Technique | Where it shows up |
 |---|---|
 | T1078.004 Valid Accounts: Cloud Accounts | `bgist` and `fyodor` sign in to Azure AD from a Hong Kong hosting IP |
-| T1110.003 Password Spraying | Ten failed sign-ins across five accounts from the same source |
+| T1110.003 Password Spraying | Ten failed sign-ins across five accounts from several source IPs |
 
 ## What I would have detected
 
-An allow-list rule on `ms:aad:signin loginStatus=Success` (country not in the set of expected countries) surfaces every Hong Kong sign-in with no tuning. A second rule for failed sign-ins fanning across multiple accounts from one IP catches the spray that preceded the successful logins. Both ship with this scenario as saved searches in the Splunk app.
+An allow-list rule on `ms:aad:signin loginStatus=Success` (country not in the set of expected countries) surfaces every Hong Kong sign-in with no tuning. A second rule for failed sign-ins fanning across several accounts catches the credential testing that ran alongside the successful logins. Both ship with this scenario as saved searches in the Splunk app.

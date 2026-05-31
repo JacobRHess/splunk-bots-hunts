@@ -2,3 +2,8 @@ host,owner,criticality,zone
 BSTOLL-L,bstoll@froth.ly,medium,workstation
 FYODOR-L,fyodor@froth.ly,medium,workstation
 BGIST-L,bgist@froth.ly,medium,workstation
+MKRAEUS-L,mkraeusen@froth.ly,medium,workstation
+PCERF-L,pcerf@froth.ly,medium,workstation
+BTUN-L,btun@froth.ly,medium,workstation
+ABUNGST-L,abungst@froth.ly,medium,workstation
+JWORTOS-L,jwortos@froth.ly,medium,workstation

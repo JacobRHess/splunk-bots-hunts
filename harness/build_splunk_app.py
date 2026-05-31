@@ -76,7 +76,10 @@ IDENTITIES: list[tuple[str, ...]] = [
     ("klagerfield@froth.ly", "employee", "marketing", "US"),
     ("btun@froth.ly", "employee", "operations", "US"),
     ("mkraeusen@froth.ly", "employee", "brewing", "US"),
-    ("abel@froth.ly", "admin", "it", "US"),
+    ("pcerf@froth.ly", "employee", "operations", "US"),
+    ("abungst@froth.ly", "employee", "sales", "US"),
+    ("jwortos@froth.ly", "employee", "brewing", "US"),
+    ("ghoppy@froth.ly", "exec", "leadership", "US"),
     ("DevilFish-ApplicationAccount@namprd17.prod.outlook.com", "service", "microsoft", ""),
 ]
 ASSET_FIELDS = ("host", "owner", "criticality", "zone")
@@ -84,6 +87,11 @@ ASSETS: list[tuple[str, ...]] = [
     ("BSTOLL-L", "bstoll@froth.ly", "medium", "workstation"),
     ("FYODOR-L", "fyodor@froth.ly", "medium", "workstation"),
     ("BGIST-L", "bgist@froth.ly", "medium", "workstation"),
+    ("MKRAEUS-L", "mkraeusen@froth.ly", "medium", "workstation"),
+    ("PCERF-L", "pcerf@froth.ly", "medium", "workstation"),
+    ("BTUN-L", "btun@froth.ly", "medium", "workstation"),
+    ("ABUNGST-L", "abungst@froth.ly", "medium", "workstation"),
+    ("JWORTOS-L", "jwortos@froth.ly", "medium", "workstation"),
 ]
 
 
