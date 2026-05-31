@@ -90,12 +90,26 @@ def test_render_savedsearches_notable_params() -> None:
     ) in out
 
 
+def test_render_savedsearches_appends_tuning() -> None:
+    out = render_savedsearches([_det(tuning="Allowlist break-glass admins")])
+    assert "Tuning: Allowlist break-glass admins" in out
+
+
 def test_render_savedsearches_is_valid_ini() -> None:
     out = render_savedsearches([_det(), _det(name="Second", scenario="02-y")])
     parser = configparser.ConfigParser(strict=True)
     parser.read_string(out)
     assert "BOTS - Test detection" in parser.sections()
     assert "BOTS - Second" in parser.sections()
+
+
+def test_render_savedsearches_tuning_cannot_break_ini() -> None:
+    # tuning text is _oneline()'d before it lands in a conf value, so an embedded
+    # newline / fake stanza header cannot inject a new INI section.
+    out = render_savedsearches([_det(tuning="line1\n[evil]\nkey = val")])
+    parser = configparser.ConfigParser(strict=True)
+    parser.read_string(out)
+    assert "evil" not in parser.sections()
 
 
 def test_render_nav_marks_first_default() -> None:
@@ -168,6 +182,16 @@ def test_search_link_is_xml_safe_and_encoded() -> None:
 def test_render_overview_tiles_drill_down() -> None:
     out = render_overview([_det()])
     assert "<drilldown>" in out and "<link target=\"_blank\">search?q=" in out
+    # 0 (silent) is green, firing (>=1) is red: the threshold boundary must be 0
+    assert '"rangeValues">[0]' in out
+
+
+def test_kpi_threshold_makes_one_red() -> None:
+    # guard the rangeValues=[0] fix in both KPI renderers so a regression to [1]
+    # (which colours a firing count of 1 green) is caught.
+    assert '"rangeValues">[0]' in render_overview([_det()])
+    assert '"rangeValues">[0]' in render_investigation()
+    assert '"rangeValues">[1]' not in render_overview([_det()])
 
 
 def test_xml_text_escapes_markup() -> None:
@@ -207,6 +231,11 @@ def test_render_investigation_uses_macros_and_lookups() -> None:
     assert "`frothly_index`" in out  # uses the deploy-index macro
     assert "lookup frothly_identities" in out and "lookup frothly_assets" in out
     assert out.count("<drilldown>") >= 3  # every panel pivots to events
+    # eventtypes must be referenced as `eventtype=NAME`, never with backtick
+    # (macro) syntax, which would make every panel search fail to parse.
+    for et in ("frothly_o365_management", "frothly_aad_signin", "frothly_aws_cloudtrail"):
+        assert f"eventtype={et}" in out
+        assert f"`{et}`" not in out
 
 
 # ---- drift guards over the committed splunk_app/ ----

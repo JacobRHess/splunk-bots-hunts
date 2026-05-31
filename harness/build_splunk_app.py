@@ -76,7 +76,10 @@ IDENTITIES: list[tuple[str, ...]] = [
     ("klagerfield@froth.ly", "employee", "marketing", "US"),
     ("btun@froth.ly", "employee", "operations", "US"),
     ("mkraeusen@froth.ly", "employee", "brewing", "US"),
-    ("abel@froth.ly", "admin", "it", "US"),
+    ("pcerf@froth.ly", "employee", "operations", "US"),
+    ("abungst@froth.ly", "employee", "sales", "US"),
+    ("jwortos@froth.ly", "employee", "brewing", "US"),
+    ("ghoppy@froth.ly", "exec", "leadership", "US"),
     ("DevilFish-ApplicationAccount@namprd17.prod.outlook.com", "service", "microsoft", ""),
 ]
 ASSET_FIELDS = ("host", "owner", "criticality", "zone")
@@ -84,6 +87,11 @@ ASSETS: list[tuple[str, ...]] = [
     ("BSTOLL-L", "bstoll@froth.ly", "medium", "workstation"),
     ("FYODOR-L", "fyodor@froth.ly", "medium", "workstation"),
     ("BGIST-L", "bgist@froth.ly", "medium", "workstation"),
+    ("MKRAEUS-L", "mkraeusen@froth.ly", "medium", "workstation"),
+    ("PCERF-L", "pcerf@froth.ly", "medium", "workstation"),
+    ("BTUN-L", "btun@froth.ly", "medium", "workstation"),
+    ("ABUNGST-L", "abungst@froth.ly", "medium", "workstation"),
+    ("JWORTOS-L", "jwortos@froth.ly", "medium", "workstation"),
 ]
 
 
@@ -99,6 +107,7 @@ class Detection:
     severity: int
     risk: int
     attack: list[str]
+    tuning: str = ""
 
 
 # Enterprise Security notable urgency keyed by the 1-5 alert severity.
@@ -149,6 +158,7 @@ def load_detections(scenarios_dir: Path) -> list[Detection]:  # pragma: no cover
                     severity=_severity(int(det.get("risk", 50))),
                     risk=int(det.get("risk", 50)),
                     attack=list(det.get("attack", [])),
+                    tuning=det.get("tuning", ""),
                 )
             )
     return detections
@@ -181,6 +191,8 @@ def render_savedsearches(detections: list[Detection]) -> str:
         )
         deployed_search = f"index={DEPLOY_INDEX} {_oneline(det.search)}"
         description = _oneline(det.description)
+        if det.tuning:
+            description = f"{description} Tuning: {_oneline(det.tuning)}"
         stanzas.append(
             "\n".join(
                 [
@@ -246,7 +258,7 @@ def render_overview(detections: list[Detection]) -> str:
             "        </search>\n"
             '        <option name="colorBy">value</option>\n'
             '        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>\n'
-            '        <option name="rangeValues">[1]</option>\n'
+            '        <option name="rangeValues">[0]</option>\n'
             '        <option name="useColors">1</option>\n'
             "        <drilldown>\n"
             f'          <link target="_blank">{_search_link(deployed)}</link>\n'
@@ -279,7 +291,7 @@ def _kpi_panel(title: str, query: str, drill: str) -> str:
         "        </search>\n"
         '        <option name="colorBy">value</option>\n'
         '        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>\n'
-        '        <option name="rangeValues">[1]</option>\n'
+        '        <option name="rangeValues">[0]</option>\n'
         '        <option name="useColors">1</option>\n'
         "        <drilldown>\n"
         f'          <link target="_blank">{_search_link(drill)}</link>\n'
@@ -319,34 +331,34 @@ def render_investigation() -> str:
     kpis = [
         _kpi_panel(
             "Anonymous O365 link retrievals",
-            "`frothly_index` `frothly_o365_management` Operation=AnonymousLinkUsed "
+            "`frothly_index` eventtype=frothly_o365_management Operation=AnonymousLinkUsed "
             "UserId=anonymous | stats dc(ClientIP)",
-            "`frothly_index` `frothly_o365_management` Operation=AnonymousLinkUsed "
+            "`frothly_index` eventtype=frothly_o365_management Operation=AnonymousLinkUsed "
             "UserId=anonymous",
         ),
         _kpi_panel(
             "Foreign Azure AD sign-ins",
-            "`frothly_index` `frothly_aad_signin` loginStatus=Success "
+            "`frothly_index` eventtype=frothly_aad_signin loginStatus=Success "
             "NOT (location.country=US OR location.country=CA) | stats count",
-            "`frothly_index` `frothly_aad_signin` loginStatus=Success "
+            "`frothly_index` eventtype=frothly_aad_signin loginStatus=Success "
             "NOT (location.country=US OR location.country=CA)",
         ),
         _kpi_panel(
             "AWS console logins without MFA",
-            "`frothly_index` `frothly_aws_cloudtrail` eventName=ConsoleLogin "
+            "`frothly_index` eventtype=frothly_aws_cloudtrail eventName=ConsoleLogin "
             "additionalEventData.MFAUsed=No | stats count",
-            "`frothly_index` `frothly_aws_cloudtrail` eventName=ConsoleLogin "
+            "`frothly_index` eventtype=frothly_aws_cloudtrail eventName=ConsoleLogin "
             "additionalEventData.MFAUsed=No",
         ),
     ]
     identity_query = (
-        "`frothly_index` `frothly_o365_management` `frothly_users` "
+        "`frothly_index` eventtype=frothly_o365_management `frothly_users` "
         "| stats count values(Operation) as operations by UserId "
         "| lookup frothly_identities identity as UserId OUTPUT role team "
         "| sort -count"
     )
     asset_query = (
-        "`frothly_index` `frothly_wineventlog_security` "
+        "`frothly_index` eventtype=frothly_wineventlog_security "
         "| stats count by host "
         "| lookup frothly_assets host OUTPUT owner criticality zone "
         "| sort -count"

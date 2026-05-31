@@ -15,13 +15,14 @@ detections:
     risk: 65
     attack:
       - T1078.004
+    tuning: "Employee travel and cloud-relay egress create geo false positives; pair with an impossible-travel or new-country-for-user check rather than a flat country block."
     fixture_expect: fires
   - id: aad-failed-signin-spray
     name: Azure AD failed sign-ins across multiple accounts
     description: >
       Failed Azure AD sign-ins spread across several accounts in a short window,
       the shape of a password spray. Fires when three or more distinct users
-      fail, which they do here from the same Hong Kong source.
+      fail, which they do here across five accounts and several source IPs.
     search: |
       sourcetype=ms:aad:signin loginStatus=Failure
       | stats dc(userPrincipalName) as users count as failures
@@ -32,4 +33,5 @@ detections:
     risk: 55
     attack:
       - T1110.003
+    tuning: "Tune the distinct-user and failure-count thresholds to your tenant baseline; bulk password resets and expired credentials inflate failures."
     fixture_expect: fires

@@ -11,6 +11,10 @@ Most BOTS v3 writeups are a blog post with SPL screenshots: static, one question
 
 Six scenarios follow one intrusion across the telemetry, not twenty disconnected questions: a compromised AWS account (01), the laptop behind it (02), a browser cryptominer on that laptop (03), a fileless PowerShell implant on a second host (04), that same `fyodor` identity reused against Azure AD from a Hong Kong VPS (05), and what the stolen cloud accounts then did inside Office 365 (06). Each scenario is a documented hunt (the question, the SPL, the pivots, the ATT&CK techniques) that then ships the detection it would have written, tested against both malicious and benign fixtures and packaged as an installable Splunk app.
 
+[![Frothly intrusion investigation dashboard](docs/img/investigation.png)](docs/img/investigation.png)
+
+<sub>The shipped investigation dashboard: cloud-abuse KPIs up top, then activity enriched with the identity and asset lookups. Every panel drills through to the events.</sub>
+
 ## The intrusion
 
 ```mermaid
@@ -75,6 +79,19 @@ CI ingests the fixtures, runs `harness/run_detections.py` to assert each detecti
 
 The `docs/attack-navigator-layer.json` layer uploads directly to the [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) ("Open Existing Layer"), scored by scenario coverage.
 
+## Screenshots
+
+All dashboards rendered against the live BOTS v3 dataset. The firing-status overview is one KPI per detection across the six scenarios; red is firing, green is a clean true-negative.
+
+[![Firing-status overview](docs/img/overview.png)](docs/img/overview.png)
+
+The six per-scenario boards each drill through to the underlying events:
+
+| | | |
+|---|---|---|
+| [AWS reconnaissance (01)](docs/img/aws-recon.png) | [BSTOLL-L endpoint (02)](docs/img/endpoint-logon.png) | [Coinhive cryptojacking (03)](docs/img/coinhive.png) |
+| [PowerShell implant (04)](docs/img/powershell-implant.png) | [Azure AD sign-ins (05)](docs/img/azure-ad-signin.png) | [O365 account abuse (06)](docs/img/o365-account-abuse.png) |
+
 ## Local development
 
 Prereqs: Docker Desktop (or native Splunk), Python 3.13, [uv](https://github.com/astral-sh/uv).
@@ -92,6 +109,8 @@ Run all documented hunts against the running Splunk, then assert the detections 
 uv run python harness/run_hunts.py
 uv run python harness/run_detections.py
 ```
+
+All 25 hunts are validated against the full BOTS v3 dataset, not only the CI fixtures. The endpoint and network scenarios (03 `stream:dns`, 04 Sysmon) need the standard Splunk add-ons that extract those sourcetypes (`Splunk_TA_microsoft-sysmon`, `Splunk_Stream`); the official BOTS v3 distribution ships them. The cloud scenarios (AWS CloudTrail, O365, Azure AD) extract without extra add-ons.
 
 Regenerate the committed artifacts (coverage page, HTML report, ATT&CK Navigator layer, Splunk app):
 

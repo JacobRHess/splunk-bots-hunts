@@ -16,6 +16,7 @@ detections:
     attack:
       - T1059.001
       - T1027
+    tuning: "Some legitimate tooling uses -EncodedCommand; baseline by parent process and code signer, or alert only when encoded execution is paired with outbound network activity."
     fixture_expect: fires
   - id: powershell-parented-by-svchost
     name: PowerShell launched by the Task Scheduler (svchost)
@@ -33,4 +34,5 @@ detections:
     risk: 70
     attack:
       - T1053.005
+    tuning: "Patch-management and backup agents legitimately launch PowerShell via the Task Scheduler; allowlist by scheduled-task name or command hash."
     fixture_expect: fires

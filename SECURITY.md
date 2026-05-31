@@ -15,11 +15,11 @@ I aim to respond within a few days.
 CI gates each push and pull request, and re-runs weekly on a schedule:
 
 - **ruff** (includes the `S` / flake8-bandit security rules) and **mypy --strict**
-- **bandit** — Python static analysis
-- **pip-audit** — known-CVE check against the locked dependencies
-- **gitleaks** — secret scanning across the working tree and git history
-- **zizmor** — GitHub Actions workflow security audit
-- **CodeQL** — code scanning (enables automatically when the repo is public)
+- **bandit** for Python static analysis
+- **pip-audit** for known-CVE checks against the locked dependencies
+- **gitleaks** for secret scanning across the working tree and git history
+- **zizmor** for GitHub Actions workflow security auditing
+- **CodeQL** code scanning (enables automatically when the repo is public)
 
 GitHub Actions are pinned by commit SHA, workflow permissions are read-only by
 default, checkouts set `persist-credentials: false`, and the Splunk CI image is

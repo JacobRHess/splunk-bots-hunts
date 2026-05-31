@@ -1,4 +1,4 @@
-index=* sourcetype=stream:dns query=*coinhive.com src_ip=192.168.247.131 earliest=-10y
+index=* sourcetype=stream:dns coinhive.com src_mac=* earliest=-10y
 | stats count by src_mac
 | sort -count
 | head 1

@@ -36,7 +36,7 @@ class Scenario:
     summary: str
     hunts: list[Hunt]
     techniques: list[tuple[str, str]]
-    detections: list[str]
+    detections: list[tuple[str, str]]
 
 
 def parse_title(readme: str) -> str:
@@ -119,7 +119,11 @@ def load_scenarios() -> list[Scenario]:  # pragma: no cover
             if t.get("id")
         ]
         det_data = load_yaml(path / "detections.yaml")
-        detections = [d["name"] for d in (det_data or {}).get("detections", []) if d.get("name")]
+        detections = [
+            (d["name"], d.get("tuning", ""))
+            for d in (det_data or {}).get("detections", [])
+            if d.get("name")
+        ]
         scenarios.append(
             Scenario(
                 slug=path.name,
@@ -198,7 +202,10 @@ def render(scenarios: list[Scenario]) -> str:
             )
         det_html = ""
         if s.detections:
-            items = "".join(f"<li>{_esc(d)}</li>" for d in s.detections)
+            items = ""
+            for name, tuning in s.detections:
+                tune = f'<span class="tune">Tuning: {_esc(tuning)}</span>' if tuning else ""
+                items += f"<li>{_esc(name)}{tune}</li>"
             det_html = f'<div class="dets"><span>Detections</span><ul>{items}</ul></div>'
         cards.append(
             f'<section class="card" id="{_esc(s.slug)}">'
@@ -293,7 +300,8 @@ table.matrix code {{ color:var(--accent); }}
 .dets span {{ color:var(--muted); font-size:12px; text-transform:uppercase;
   letter-spacing:.04em; }}
 .dets ul {{ margin:6px 0 0; padding-left:18px; }}
-.dets li {{ font-size:13px; margin:2px 0; }}
+.dets li {{ font-size:13px; margin:6px 0; }}
+.tune {{ display:block; color:var(--muted); font-size:12px; margin-top:2px; }}
 .links {{ margin:12px 0 0; color:var(--muted); font-size:13px; }}
 footer {{ margin-top:48px; color:var(--muted); font-size:13px;
   border-top:1px solid var(--line); padding-top:16px; }}
