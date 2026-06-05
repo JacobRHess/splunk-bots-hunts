@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   analyze:
-    # Code scanning requires GitHub Advanced Security on private repos.
-    # Auto-enables once this repo flips public.
-    if: ${{ github.event.repository.private == false }}
+    # Code scanning requires GitHub Advanced Security on private repos. The job
+    # always runs (so the workflow badge reports passing), but the CodeQL steps
+    # are gated on the repo being public and auto-enable once it flips.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -34,9 +34,15 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           persist-credentials: false
-      - uses: github/codeql-action/init@84498526a009a99c875e83ef4821a8ba52de7c22  # v3.25.5
+      - id: visibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "private=$(gh api "repos/${{ github.repository }}" --jq .private)" >> "$GITHUB_OUTPUT"
+      - if: ${{ steps.visibility.outputs.private == 'false' }}
+        uses: github/codeql-action/init@84498526a009a99c875e83ef4821a8ba52de7c22  # v3.25.5
         with:
           languages: ${{ matrix.language }}
-      - uses: github/codeql-action/analyze@84498526a009a99c875e83ef4821a8ba52de7c22  # v3.25.5
+      - if: ${{ steps.visibility.outputs.private == 'false' }}
+        uses: github/codeql-action/analyze@84498526a009a99c875e83ef4821a8ba52de7c22  # v3.25.5
         with:
           category: "/language:${{ matrix.language }}"
